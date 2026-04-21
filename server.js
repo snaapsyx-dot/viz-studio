@@ -124,6 +124,9 @@ async function initDB() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  // Migrate: add section column if missing
+  try { db.run("ALTER TABLE projects ADD COLUMN section TEXT DEFAULT 'author'"); } catch (e) { /* already exists */ }
+
   db.run(`CREATE TABLE IF NOT EXISTS clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -289,21 +292,31 @@ app.get('/api/clients', (req, res) => {
 
 // ===== ADMIN API: PROJECTS =====
 app.post('/api/admin/projects', requireAdmin, (req, res) => {
-  const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
-  dbRun(
-    "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author']
-  );
-  res.json({ success: true, id: db.exec("SELECT last_insert_rowid()")[0].values[0][0] });
+  try {
+    const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
+    dbRun(
+      "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author']
+    );
+    res.json({ success: true, id: db.exec("SELECT last_insert_rowid()")[0].values[0][0] });
+  } catch (e) {
+    console.error('POST /api/admin/projects error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
-  const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
-  dbRun(
-    "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=? WHERE id=?",
-    [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', req.params.id]
-  );
-  res.json({ success: true });
+  try {
+    const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
+    dbRun(
+      "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=? WHERE id=?",
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', req.params.id]
+    );
+    res.json({ success: true });
+  } catch (e) {
+    console.error('PUT /api/admin/projects error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.delete('/api/admin/projects/:id', requireAdmin, (req, res) => {
