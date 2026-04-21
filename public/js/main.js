@@ -335,8 +335,10 @@ function renderWorks() {
       ? `<button class="inline-edit-btn" onclick="event.stopPropagation(); openEditProject(${p.id})" title="Edit">${pencilSVG}</button>`
       : '';
 
+    const dragAttr = isAdmin ? `draggable="true" data-project-id="${p.id}" data-sort="${p.sort_order}"` : '';
+
     return `
-      <div class="work-card ${i === 0 ? 'featured' : ''} reveal ${i > 0 ? 'r-d' + i : ''}" onclick="openProject(${i})">
+      <div class="work-card ${i === 0 ? 'featured' : ''} reveal ${i > 0 ? 'r-d' + i : ''}" ${dragAttr} onclick="openProject(${i})">
         ${editBtn}
         <div class="work-thumb">
           ${thumbHTML}
@@ -363,11 +365,65 @@ function renderWorks() {
         Add Project
       </button>
     `);
+    initWorksDragDrop(grid);
   }
 
   // Re-observe new elements
   document.querySelectorAll('.works-grid .reveal').forEach(el => revealObs?.observe(el));
   refreshCursorTargets();
+}
+
+function initWorksDragDrop(grid) {
+  let dragEl = null;
+
+  grid.querySelectorAll('.work-card[draggable]').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragEl = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      grid.querySelectorAll('.work-card').forEach(c => c.classList.remove('drag-over'));
+      dragEl = null;
+      // Save new order
+      const cards = [...grid.querySelectorAll('.work-card[data-project-id]')];
+      const order = cards.map((c, i) => ({ id: +c.dataset.projectId, sort_order: i }));
+      fetch('/api/admin/projects/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order })
+      }).then(() => reloadAndRender()).catch(() => showToast('Reorder failed'));
+    });
+
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (dragEl && card !== dragEl) {
+        card.classList.add('drag-over');
+      }
+    });
+
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (dragEl && card !== dragEl) {
+        const allCards = [...grid.querySelectorAll('.work-card')];
+        const dragIdx = allCards.indexOf(dragEl);
+        const dropIdx = allCards.indexOf(card);
+        if (dragIdx < dropIdx) {
+          card.after(dragEl);
+        } else {
+          card.before(dragEl);
+        }
+      }
+    });
+  });
 }
 
 // ===== LOADER =====
@@ -1001,6 +1057,7 @@ function getUploadPopup() {
     popup = document.createElement('div');
     popup.id = 'uploadPopup';
     popup.innerHTML = `
+      <button class="upload-popup-cancel" title="Cancel">&times;</button>
       <div class="upload-popup-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       </div>
@@ -1013,12 +1070,15 @@ function getUploadPopup() {
   return popup;
 }
 
+let _currentUploadXHR = null;
+
 function inlineUploadFile(file) {
   return new Promise((resolve, reject) => {
     const popup = getUploadPopup();
     const fill = popup.querySelector('.upload-popup-bar-fill');
     const pct = popup.querySelector('.upload-popup-pct');
     const text = popup.querySelector('.upload-popup-text');
+    const cancelBtn = popup.querySelector('.upload-popup-cancel');
     fill.style.width = '0%';
     pct.textContent = '0%';
     text.textContent = 'Uploading ' + file.name.slice(0, 30) + (file.name.length > 30 ? '...' : '');
@@ -1027,6 +1087,15 @@ function inlineUploadFile(file) {
     const fd = new FormData();
     fd.append('file', file);
     const xhr = new XMLHttpRequest();
+    _currentUploadXHR = xhr;
+
+    cancelBtn.onclick = () => {
+      xhr.abort();
+      text.textContent = 'Cancelled';
+      setTimeout(() => popup.classList.remove('active'), 600);
+      reject(new Error('Upload cancelled'));
+    };
+
     xhr.open('POST', '/api/admin/upload');
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
@@ -1036,6 +1105,7 @@ function inlineUploadFile(file) {
       }
     };
     xhr.onload = () => {
+      _currentUploadXHR = null;
       fill.style.width = '100%';
       pct.textContent = '100%';
       text.textContent = 'Done!';
@@ -1047,12 +1117,20 @@ function inlineUploadFile(file) {
       }
     };
     xhr.onerror = () => {
+      _currentUploadXHR = null;
       text.textContent = 'Upload failed';
       setTimeout(() => popup.classList.remove('active'), 1500);
       reject(new Error('Upload failed'));
     };
     xhr.send(fd);
   });
+}
+
+// Delete file from server
+function deleteUploadedFile(url) {
+  if (!url) return;
+  const filename = url.split('/').pop();
+  fetch('/api/admin/upload/' + encodeURIComponent(filename), { method: 'DELETE' }).catch(() => {});
 }
 
 // ---- Edit modal core ----
@@ -1100,7 +1178,7 @@ function openEditProject(id) {
     const isVid = m.type === 'video';
     return `<div class="edit-media-thumb" data-src="${escHtml(m.src)}" data-type="${m.type}">
       ${isVid ? `<video src="${m.src}" muted></video>` : `<img src="${m.src}" alt="">`}
-      <button class="edit-media-remove" onclick="this.parentElement.remove()">&times;</button>
+      <button class="edit-media-remove" onclick="deleteUploadedFile(this.parentElement.dataset.src); this.parentElement.remove()">&times;</button>
     </div>`;
   }).join('');
 
@@ -1208,6 +1286,7 @@ async function inlineAddProjectMedia(input) {
   } catch { showToast('Upload failed'); }
 }
 window.inlineAddProjectMedia = inlineAddProjectMedia;
+window.deleteUploadedFile = deleteUploadedFile;
 
 async function saveEditProject(id) {
   const tags = [...document.querySelectorAll('#ep-tags-wrap .edit-tag-chip')].map(c => c.textContent.replace('×', '').trim());

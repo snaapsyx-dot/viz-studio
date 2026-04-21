@@ -664,8 +664,13 @@ nav:not(.scrolled) {
   border-radius: var(--r-lg);
   overflow: hidden; cursor: none;
   border: 1px solid var(--border);
-  transition: border-color 0.3s, transform 0.5s var(--ease);
+  transition: border-color 0.3s, transform 0.5s var(--ease), opacity 0.2s;
 }
+
+.work-card.dragging { opacity: 0.4; }
+.work-card.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+.work-card[draggable] { cursor: grab; }
+.work-card[draggable]:active { cursor: grabbing; }
 
 .work-card.featured { grid-column: 1 / -1; }
 .work-card.featured .work-thumb { max-height: 560px; }
@@ -1788,10 +1793,9 @@ footer {
   display: flex; flex-wrap: wrap; gap: 6px;
   padding: 8px 12px;
   background: rgba(255,255,255,0.04);
-  min-height: 42px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  min-height: 40px;
+  min-height: 42px;
   align-items: center;
 }
 
@@ -1817,16 +1821,24 @@ footer {
 .edit-tag-chip button:hover { color: #f44; }
 
 .edit-tags-input {
-  border: none; background: none;
+  border: 1px dashed rgba(79,125,245,0.3);
+  background: rgba(79,125,245,0.05);
   color: var(--white);
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 11px; font-weight: 500;
   outline: none;
-  flex: 1; min-width: 100px;
-  padding: 4px 0;
+  min-width: 80px; max-width: 120px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  transition: border-color 0.2s, background 0.2s;
 }
 
-.edit-tags-input::placeholder { color: var(--dim); font-style: italic; }
+.edit-tags-input:focus {
+  border-color: var(--accent);
+  background: rgba(79,125,245,0.12);
+}
+
+.edit-tags-input::placeholder { color: var(--dim); }
 
 .edit-actions {
   display: flex; gap: 10px; margin-top: 24px;
@@ -1937,3 +1949,15 @@ footer {
   color: var(--accent);
   font-family: var(--font);
 }
+
+.upload-popup-cancel {
+  position: absolute; top: 8px; right: 8px;
+  width: 24px; height: 24px;
+  border: none; background: rgba(255,255,255,0.08);
+  color: var(--dim); font-size: 16px;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.upload-popup-cancel:hover { background: rgba(255,68,68,0.2); color: #f44; }

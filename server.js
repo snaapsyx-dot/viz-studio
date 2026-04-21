@@ -306,7 +306,29 @@ app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
 });
 
 app.delete('/api/admin/projects/:id', requireAdmin, (req, res) => {
+  // Clean up uploaded media files
+  const rows = dbAll("SELECT media FROM projects WHERE id=?", [req.params.id]);
+  if (rows[0]) {
+    try {
+      const media = JSON.parse(rows[0].media || '[]');
+      media.forEach(m => {
+        if (m.src && m.src.startsWith('/uploads/')) {
+          const fp = path.join(__dirname, 'public', m.src);
+          if (fs.existsSync(fp)) fs.unlinkSync(fp);
+        }
+      });
+    } catch {}
+  }
   dbRun("DELETE FROM projects WHERE id=?", [req.params.id]);
+  res.json({ success: true });
+});
+
+app.post('/api/admin/projects/reorder', requireAdmin, (req, res) => {
+  const { order } = req.body; // array of { id, sort_order }
+  if (!Array.isArray(order)) return res.status(400).json({ error: 'Invalid order' });
+  order.forEach(item => {
+    dbRun("UPDATE projects SET sort_order=? WHERE id=?", [item.sort_order, item.id]);
+  });
   res.json({ success: true });
 });
 
