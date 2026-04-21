@@ -2,6 +2,7 @@ node_modules/
 .claude/
 *.tar.gz
 .env
+database.sqlite
 Макет_от_ии*
 Local/Untitled.png
 Local/Untitled_small.png
