@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>viz.studio — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+  <header class="admin-header">
+    <a href="/" class="admin-logo">viz<span>.</span>studio <small>Admin Panel</small></a>
+    <div class="admin-actions">
+      <button class="btn btn-outline" onclick="location.href='/'">View Site</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="admin-body">
+    <div class="status-msg" id="statusMsg"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="projects" onclick="switchTab('projects')">Projects</button>
+      <button class="tab" data-tab="clients" onclick="switchTab('clients')">Clients</button>
+      <button class="tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    </div>
+
+    <!-- PROJECTS TAB -->
+    <div id="tab-projects">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 style="font-family:var(--font-d);font-size:18px;">Projects</h2>
+        <button class="btn btn-primary" onclick="showProjectForm()">+ Add Project</button>
+      </div>
+
+      <div id="projectsList"></div>
+      <div id="projectForm" style="display:none"></div>
+    </div>
+
+    <!-- CLIENTS TAB -->
+    <div id="tab-clients" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 style="font-family:var(--font-d);font-size:18px;">Clients</h2>
+        <button class="btn btn-primary" onclick="showClientForm()">+ Add Client</button>
+      </div>
+
+      <div id="clientsList"></div>
+      <div id="clientForm" style="display:none"></div>
+    </div>
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" style="display:none">
+      <h2 style="font-family:var(--font-d);font-size:18px;margin-bottom:20px;">Site Settings</h2>
+
+      <div class="settings-section">
+        <h3 style="font-size:14px;margin-bottom:12px;color:var(--dim);">Showreel Video</h3>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <label class="form-label">Video URL (or upload)</label>
+            <input class="form-input" id="showreel-url" placeholder="/Videos/showreel.mp4">
+          </div>
+          <label class="btn btn-outline" style="cursor:pointer;height:44px;display:flex;align-items:center;">
+            Upload Video
+            <input type="file" accept="video/*" style="display:none" onchange="uploadShowreel(this)">
+          </label>
+          <button class="btn btn-primary" style="height:44px;" onclick="saveShowreel()">Save</button>
+        </div>
+        <div id="showreel-preview" style="margin-top:16px;max-width:480px;border-radius:12px;overflow:hidden;border:1px solid var(--border);"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

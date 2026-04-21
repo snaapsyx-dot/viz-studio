@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>viz.studio — 3D Visualization Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <!-- GRAIN -->
+  <div class="grain"></div>
+
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div class="loader-text" data-i18n="loader_text">Loading experience</div>
+    <div class="loader-track"><div class="loader-fill" id="loaderFill"></div></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">viz<span>.</span>studio</a>
+    <ul class="nav-links">
+      <li><a href="#works" class="nav-a" data-i18n="nav_works">Works</a></li>
+      <li><a href="#services" class="nav-a" data-i18n="nav_services">Services</a></li>
+      <li><a href="#clients" class="nav-a" data-i18n="nav_clients">Clients</a></li>
+      <li><a href="#about" class="nav-a" data-i18n="nav_about">About</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="lang-toggle" id="langToggle" onclick="toggleLang()">RU</button>
+      <button class="nav-cta" data-i18n="nav_cta" onclick="scrollToSection('#contact')">Get in touch</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow"><span data-i18n="hero_eyebrow">3D Visualization Studio</span></div>
+      <h1 class="hero-h1">
+        <span class="line"><span data-i18n="hero_h1_1">Render the</span></span>
+        <span class="line"><span><em data-i18n="hero_h1_2">impossible.</em></span></span>
+      </h1>
+      <p class="hero-desc" data-i18n="hero_desc">Cinematic 3D visuals for YouTube creators with millions of subscribers. From concept to final frame.</p>
+      <div class="hero-ctas">
+        <a href="#works" class="btn-fill" data-i18n="hero_btn_works" onclick="event.preventDefault(); scrollToSection('#works')">View Works</a>
+        <a href="#contact" class="btn-ghost" onclick="event.preventDefault(); scrollToSection('#contact')"><span data-i18n="hero_btn_project">Start a project</span> <span class="arr">&#8594;</span></a>
+      </div>
+    </div>
+
+    <!-- CUBE -->
+    <div class="cube-scene">
+      <div class="cube-wrap">
+        <div class="cube-particles">
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        </div>
+        <div class="cube-glow-ring"></div>
+        <div class="cube-glow-center"></div>
+        <div class="cube-obj">
+          <div class="face face-front"><div class="face-inner"><div class="dot-pulse"></div></div></div>
+          <div class="face face-back"></div>
+          <div class="face face-left"></div>
+          <div class="face face-right"></div>
+          <div class="face face-top"></div>
+          <div class="face face-bottom"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <span class="marquee-item"><span class="dot"></span>Blender 4.5</span>
+      <span class="marquee-item"><span class="dot"></span>After Effects</span>
+      <span class="marquee-item"><span class="dot"></span>Photoshop</span>
+      <span class="marquee-item"><span class="dot"></span>Resolve</span>
+      <span class="marquee-item"><span class="dot"></span>Adobe Premiere Pro</span>
+      <span class="marquee-item"><span class="dot"></span>Substance 3D Painter</span>
+      <span class="marquee-item"><span class="dot"></span>Unreal Engine</span>
+      <span class="marquee-item"><span class="dot"></span>Gaea 2.0</span>
+      <span class="marquee-item"><span class="dot"></span>MarvelousDesigner</span>
+      <span class="marquee-item"><span class="dot"></span>Blender 4.5</span>
+      <span class="marquee-item"><span class="dot"></span>After Effects</span>
+      <span class="marquee-item"><span class="dot"></span>Photoshop</span>
+      <span class="marquee-item"><span class="dot"></span>Resolve</span>
+      <span class="marquee-item"><span class="dot"></span>Adobe Premiere Pro</span>
+      <span class="marquee-item"><span class="dot"></span>Substance 3D Painter</span>
+      <span class="marquee-item"><span class="dot"></span>Unreal Engine</span>
+      <span class="marquee-item"><span class="dot"></span>Gaea 2.0</span>
+      <span class="marquee-item"><span class="dot"></span>MarvelousDesigner</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar reveal">
+    <div class="stat-item">
+      <div class="stat-num" data-target="5">0<b>+</b></div>
+      <div class="stat-text" data-i18n="stat_1">YouTube Clients</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="73">0<b>M+</b></div>
+      <div class="stat-text" data-i18n="stat_2">Total Subscribers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="3">0<b>+</b></div>
+      <div class="stat-text" data-i18n="stat_3">Years of Craft</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="100">0<b>%</b></div>
+      <div class="stat-text" data-i18n="stat_4">Client Satisfaction</div>
+    </div>
+  </div>
+
+  <!-- SHOWREEL -->
+  <section class="section" id="works">
+    <div class="reveal">
+      <div class="section-label" data-i18n="showreel_label">Showreel</div>
+      <div class="section-heading"><span data-i18n="showreel_heading_1">See it </span><em data-i18n="showreel_heading_em">in motion.</em></div>
+      <div class="section-sub" data-i18n="showreel_sub">A glimpse into cinematic 3D worlds crafted for top-tier creators.</div>
+    </div>
+    <div class="reel-wrap reveal r-d2">
+      <video id="showreelVideo" src="/Videos/1110400_Tongue_Licking_1280x720.mp4" preload="metadata" playsinline></video>
+      <div class="reel-overlay">
+        <div class="play-circle">
+          <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <div class="reel-label" data-i18n="showreel_play">Play Showreel 2026</div>
+      </div>
+      <div class="reel-controls">
+        <button class="reel-btn reel-play-pause">
+          <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="reel-progress">
+          <div class="reel-progress-fill"></div>
+        </div>
+        <div class="reel-time">0:00 / 0:00</div>
+        <button class="reel-btn reel-mute">
+          <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </button>
+        <button class="reel-btn reel-fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-label" data-i18n="portfolio_label">Portfolio</div>
+      <div class="section-heading"><span data-i18n="portfolio_heading_1">Selected </span><em data-i18n="portfolio_heading_em">works.</em></div>
+      <div class="section-sub" data-i18n="portfolio_sub">Each project is a unique visual story, built from scratch.</div>
+    </div>
+    <div class="works-grid" id="worksGrid">
+      <!-- rendered by JS -->
+    </div>
+  </section>
+
+  <!-- CLIENTS -->
+  <section class="section" id="clients">
+    <div class="reveal">
+      <div class="section-label" data-i18n="clients_label">Clients</div>
+      <div class="section-heading"><span data-i18n="clients_heading_1">Trusted by </span><em data-i18n="clients_heading_em">the best.</em></div>
+      <div class="section-sub" data-i18n="clients_sub">Creating 3D content for top YouTube creators around the globe.</div>
+    </div>
+    <div class="clients-grid reveal r-d2" id="clientsGrid">
+      <!-- rendered by JS -->
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section" id="services">
+    <div class="reveal">
+      <div class="section-label" data-i18n="services_label">Services</div>
+      <div class="section-heading"><span data-i18n="services_heading_1">Full-cycle </span><em data-i18n="services_heading_em">3D.</em></div>
+      <div class="section-sub" data-i18n="services_sub">From concept to final render — everything under one roof.</div>
+    </div>
+
+    <div class="services-path">
+      <div class="sp-line"></div>
+      <div class="sp-item reveal r-d1">
+        <div class="sp-dot"></div>
+        <div class="sp-card">
+          <div class="sp-num">01</div>
+          <div class="sp-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline fill="none" points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <div class="sp-title" data-i18n="svc_1_title">3D Visualization</div>
+          <div class="sp-desc" data-i18n="svc_1_desc">Photorealistic renders for YouTube content and branded integrations.</div>
+        </div>
+      </div>
+      <div class="sp-item reveal r-d2">
+        <div class="sp-dot"></div>
+        <div class="sp-card">
+          <div class="sp-num">02</div>
+          <div class="sp-icon">
+            <svg viewBox="0 0 24 24"><polygon fill="none" points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <div class="sp-title" data-i18n="svc_2_title">Motion Graphics</div>
+          <div class="sp-desc" data-i18n="svc_2_desc">Animated 3D sequences and intros that make your channel unforgettable.</div>
+        </div>
+      </div>
+      <div class="sp-item reveal r-d3">
+        <div class="sp-dot"></div>
+        <div class="sp-card">
+          <div class="sp-num">03</div>
+          <div class="sp-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+          </div>
+          <div class="sp-title" data-i18n="svc_3_title">Concept Art</div>
+          <div class="sp-desc" data-i18n="svc_3_desc">Visual style development: thumbnails, intros, branded 3D elements.</div>
+        </div>
+      </div>
+      <div class="sp-item reveal r-d4">
+        <div class="sp-dot"></div>
+        <div class="sp-card">
+          <div class="sp-num">04</div>
+          <div class="sp-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="sp-title" data-i18n="svc_4_title">Product Visuals</div>
+          <div class="sp-desc" data-i18n="svc_4_desc">3D product presentations for ad integrations — beautiful and convincing.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="software reveal r-d3">
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/blender.svg" alt="">Blender 4.5</div>
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/adobeaftereffects.svg" alt="">After Effects</div>
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/adobephotoshop.svg" alt="">Photoshop</div>
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/davinciresolve.svg" alt="">Resolve</div>
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/adobepremierepro.svg" alt="">Adobe Premiere Pro</div>
+      <div class="sw-pill"><svg class="sw-ico" viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L19.35 8 12 11.82 4.65 8 12 4.18zM4 9.32l7 3.5V20l-7-3.5V9.32zm10 7.18V12.82l7-3.5V16.5l-7 3.5z"/></svg>Adobe Substance 3D Painter</div>
+      <div class="sw-pill"><img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/unrealengine.svg" alt="">Unreal Engine</div>
+      <div class="sw-pill">Gaea 2.0</div>
+      <div class="sw-pill"><svg class="sw-ico" viewBox="0 0 24 24"><path d="M21.8 6.1C21 4.9 19.5 4 17.8 4c-2 0-3.7 1.2-4.5 2.9-.3.7-.5 1.4-.5 2.2 0 .5.1 1 .2 1.4L7.3 16.2c-.4-.1-.9-.2-1.3-.2-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4c0-.8-.2-1.5-.6-2.1l5.6-5.6c.5.2 1 .3 1.5.3.8 0 1.6-.2 2.2-.6l.1-.1c1.7-1 2.7-2.8 2.7-4.8 0-.3 0-.7-.1-1zM6 22c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10.5-12c-1.4 0-2.5-1.1-2.5-2.5S15.1 5 16.5 5 19 6.1 19 7.5 17.9 10 16.5 10z"/></svg>MarvelousDesigner Personal</div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="section">
+    <div class="reveal">
+      <div class="section-label" data-i18n="process_label">Process</div>
+      <div class="section-heading"><span data-i18n="process_heading_1">Simple & </span><em data-i18n="process_heading_em">transparent.</em></div>
+      <div class="section-sub" data-i18n="process_sub">Four steps from idea to a finished file in your hands.</div>
+    </div>
+    <div class="process-grid">
+      <div class="process-card reveal r-d1">
+        <div class="process-step" data-i18n="proc_1_step">01 — Brief</div>
+        <div class="process-title" data-i18n="proc_1_title">Task Discussion</div>
+        <div class="process-desc" data-i18n="proc_1_desc">We go over the task, references and deadline. No filler.</div>
+      </div>
+      <div class="process-card reveal r-d2">
+        <div class="process-step" data-i18n="proc_2_step">02 — Concept</div>
+        <div class="process-title" data-i18n="proc_2_title">First Drafts</div>
+        <div class="process-desc" data-i18n="proc_2_desc">Sketches and storyboards for approval before production.</div>
+      </div>
+      <div class="process-card reveal r-d3">
+        <div class="process-step" data-i18n="proc_3_step">03 — Production</div>
+        <div class="process-title" data-i18n="proc_3_title">3D & Render</div>
+        <div class="process-desc" data-i18n="proc_3_desc">Modeling, textures, lighting, animation — craft happens here.</div>
+      </div>
+      <div class="process-card reveal r-d4">
+        <div class="process-step" data-i18n="proc_4_step">04 — Delivery</div>
+        <div class="process-title" data-i18n="proc_4_title">Final Files</div>
+        <div class="process-desc" data-i18n="proc_4_desc">Revisions included. Export in any format you need.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="reveal">
+      <div class="section-label" data-i18n="about_label">About</div>
+      <div class="section-heading"><span data-i18n="about_heading_1">The person behind </span><em data-i18n="about_heading_em">the pixels.</em></div>
+    </div>
+    <div class="about-layout reveal r-d2">
+      <div class="about-avatar">
+        <img src="/Local/Avatar.png" alt="Avatar">
+      </div>
+      <div class="about-body">
+        <h3 data-i18n="about_h3">Hey, I'm the creator of viz<span class="acc">.</span>studio</h3>
+        <p data-i18n="about_p1">I craft cinematic 3D worlds for some of the biggest YouTube creators on the planet. From photorealistic product shots to fully animated intros — bringing ideas to life in three dimensions.</p>
+        <p data-i18n="about_p2">With 3+ years of experience and 50M+ subscribers reached, I know what makes content pop.</p>
+        <a href="#contact" class="about-link" data-i18n="about_link" onclick="event.preventDefault(); scrollToSection('#contact')">Let's work together <span>&#8594;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="contact">
+    <div class="reveal">
+      <div class="cta-heading" data-i18n="cta_heading">Ready for the<br><em>next project.</em></div>
+      <div class="cta-sub" data-i18n="cta_sub">Drop your email and let's discuss how 3D visuals can make your content unforgettable.</div>
+    </div>
+    <div class="cta-form reveal r-d2">
+      <input class="cta-input" type="email" placeholder="your@email.com" id="emailInput">
+      <button class="cta-btn" data-i18n="cta_btn" onclick="handleEmail()">Send</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="f-logo">viz<span>.</span>studio</div>
+    <ul class="f-links">
+      <li><a href="https://t.me/leywin0_0" target="_blank">Telegram</a></li>
+      <li><a href="#" onclick="event.preventDefault(); showToast('Instagram — coming soon.')">Instagram</a></li>
+      <li><a href="#" onclick="event.preventDefault(); showToast('Behance — coming soon.')">Behance</a></li>
+      <li><a href="#" onclick="event.preventDefault(); showToast('YouTube — coming soon.')">YouTube</a></li>
+    </ul>
+    <div class="f-copy" data-i18n="footer_copy">&copy; 2026 viz.studio</div>
+  </footer>
+
+  <!-- PROJECT MODAL -->
+  <div class="project-overlay" id="projectOverlay" onclick="closeProject(event)">
+    <button class="project-close" onclick="closeProject()">&#10005;</button>
+    <div class="project-modal">
+      <div class="project-media" id="projectMedia"></div>
+      <div class="project-info" id="projectInfo"></div>
+    </div>
+  </div>
+
+  <!-- PASSWORD MODAL -->
+  <div class="pw-overlay" id="pwOverlay" onclick="if(event.target===this)closePwModal()">
+    <div class="pw-box">
+      <h3 data-i18n="pw_title">Admin Access</h3>
+      <p data-i18n="pw_desc">Enter password to continue</p>
+      <input class="pw-input" type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')submitPw()">
+      <button class="pw-submit" data-i18n="pw_btn" onclick="submitPw()">Enter</button>
+    </div>
+  </div>
+
+  <!-- INLINE EDIT MODAL -->
+  <div class="edit-overlay" id="editOverlay" onclick="if(event.target===this)closeEditModal()">
+    <div class="edit-panel" id="editPanel"></div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- LIBS -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>gsap.registerPlugin(ScrollTrigger);</script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
