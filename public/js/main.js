@@ -520,22 +520,25 @@ function initStats() {
 }
 
 // ===== SHOWREEL =====
+function addShowreelEditBtn() {
+  const wrap = document.querySelector('.reel-wrap');
+  if (!wrap || !isAdmin || wrap.querySelector('.inline-edit-btn')) return;
+  const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  const btn = document.createElement('button');
+  btn.className = 'inline-edit-btn';
+  btn.title = 'Change Showreel';
+  btn.innerHTML = pencilSVG;
+  btn.style.zIndex = '20';
+  btn.onclick = (e) => { e.stopPropagation(); openEditShowreel(); };
+  wrap.style.position = 'relative';
+  wrap.appendChild(btn);
+}
+
 function initShowreel() {
   const wrap = document.querySelector('.reel-wrap');
   if (!wrap) return;
 
-  // Admin edit button for showreel
-  if (isAdmin) {
-    const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-    const btn = document.createElement('button');
-    btn.className = 'inline-edit-btn';
-    btn.title = 'Change Showreel';
-    btn.innerHTML = pencilSVG;
-    btn.style.zIndex = '20';
-    btn.onclick = (e) => { e.stopPropagation(); openEditShowreel(); };
-    wrap.style.position = 'relative';
-    wrap.appendChild(btn);
-  }
+  addShowreelEditBtn();
 
   const video = wrap.querySelector('video');
   const overlay = wrap.querySelector('.reel-overlay');
@@ -659,7 +662,10 @@ function openProject(idx) {
 
   const tagsHTML = (p.tags || []).map(t => `<span class="pj-tag">${t}</span>`).join('');
 
+  const editBtnHTML = isAdmin ? `<button class="inline-edit-btn pj-modal-edit" onclick="event.stopPropagation(); closeProject(); openEditProject(${p.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>` : '';
+
   info.innerHTML = `
+    ${editBtnHTML}
     <div class="pj-cat">${p.category}</div>
     <div class="pj-title">${p.name}</div>
     <div class="pj-desc">${p.description}</div>
@@ -861,6 +867,7 @@ async function submitPw() {
       isAdmin = true;
       renderWorks();
       renderClients();
+      addShowreelEditBtn();
       showAdminBar();
       refreshCursorTargets();
       showToast('Admin mode activated');
@@ -987,51 +994,63 @@ async function adminLogout() {
 }
 window.adminLogout = adminLogout;
 
-// ---- Upload helper with progress ----
-function showUploadProgress() {
-  let bar = document.getElementById('uploadProgressBar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'uploadProgressBar';
-    bar.innerHTML = '<div class="upload-progress-fill"></div><span class="upload-progress-text">0%</span>';
-    document.body.appendChild(bar);
+// ---- Upload helper with progress popup ----
+function getUploadPopup() {
+  let popup = document.getElementById('uploadPopup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'uploadPopup';
+    popup.innerHTML = `
+      <div class="upload-popup-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="upload-popup-text">Uploading...</div>
+      <div class="upload-popup-bar"><div class="upload-popup-bar-fill"></div></div>
+      <div class="upload-popup-pct">0%</div>
+    `;
+    document.body.appendChild(popup);
   }
-  bar.classList.add('active');
-  bar.querySelector('.upload-progress-fill').style.width = '0%';
-  bar.querySelector('.upload-progress-text').textContent = '0%';
-  return bar;
-}
-
-function updateUploadProgress(bar, pct) {
-  bar.querySelector('.upload-progress-fill').style.width = pct + '%';
-  bar.querySelector('.upload-progress-text').textContent = Math.round(pct) + '%';
-}
-
-function hideUploadProgress(bar) {
-  bar.querySelector('.upload-progress-fill').style.width = '100%';
-  bar.querySelector('.upload-progress-text').textContent = '100%';
-  setTimeout(() => bar.classList.remove('active'), 600);
+  return popup;
 }
 
 function inlineUploadFile(file) {
   return new Promise((resolve, reject) => {
-    const bar = showUploadProgress();
+    const popup = getUploadPopup();
+    const fill = popup.querySelector('.upload-popup-bar-fill');
+    const pct = popup.querySelector('.upload-popup-pct');
+    const text = popup.querySelector('.upload-popup-text');
+    fill.style.width = '0%';
+    pct.textContent = '0%';
+    text.textContent = 'Uploading ' + file.name.slice(0, 30) + (file.name.length > 30 ? '...' : '');
+    popup.classList.add('active');
+
     const fd = new FormData();
     fd.append('file', file);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/admin/upload');
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) updateUploadProgress(bar, (e.loaded / e.total) * 100);
+      if (e.lengthComputable) {
+        const p = Math.round((e.loaded / e.total) * 100);
+        fill.style.width = p + '%';
+        pct.textContent = p + '%';
+      }
     };
     xhr.onload = () => {
-      hideUploadProgress(bar);
+      fill.style.width = '100%';
+      pct.textContent = '100%';
+      text.textContent = 'Done!';
+      setTimeout(() => popup.classList.remove('active'), 800);
       if (xhr.status === 200) {
         resolve(JSON.parse(xhr.responseText));
       } else {
         reject(new Error('Upload failed'));
       }
     };
-    xhr.onerror = () => { hideUploadProgress(bar); reject(new Error('Upload failed')); };
+    xhr.onerror = () => {
+      text.textContent = 'Upload failed';
+      setTimeout(() => popup.classList.remove('active'), 1500);
+      reject(new Error('Upload failed'));
+    };
     xhr.send(fd);
   });
 }
