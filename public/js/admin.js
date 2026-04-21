@@ -23,8 +23,6 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('tab-projects').style.display = tab === 'projects' ? '' : 'none';
   document.getElementById('tab-clients').style.display = tab === 'clients' ? '' : 'none';
-  document.getElementById('tab-settings').style.display = tab === 'settings' ? '' : 'none';
-  if (tab === 'settings') loadSettings();
 }
 
 // ===== STATUS =====
@@ -50,39 +48,61 @@ async function uploadFile(file) {
   return await res.json();
 }
 
+// ===== HELPERS =====
+function getAllTags() {
+  const set = new Set();
+  projects.forEach(p => (p.tags || []).forEach(t => set.add(t)));
+  return [...set].sort();
+}
+
+function getAllCategories() {
+  const set = new Set();
+  projects.forEach(p => { if (p.category) set.add(p.category); });
+  return [...set].sort();
+}
+
 // ========================
 // PROJECTS
 // ========================
 function renderProjectsTable() {
   const el = document.getElementById('projectsList');
+  const authorProjects = projects.filter(p => (p.section || 'author') === 'author');
+  const commercialProjects = projects.filter(p => (p.section || 'author') === 'commercial');
+
   if (!projects.length) {
     el.innerHTML = '<div class="empty-state">No projects yet. Click "+ Add Project" to create one.</div>';
     return;
   }
 
-  el.innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Name</th><th>Category</th><th>Year</th><th>Media</th><th>Actions</th>
-        </tr></thead>
-        <tbody>
-          ${projects.map(p => `
-            <tr>
-              <td class="cell-name">${esc(p.name)}</td>
-              <td><span class="cell-tag">${esc(p.category)}</span></td>
-              <td>${esc(p.year)}</td>
-              <td>${(p.media || []).length} files</td>
-              <td class="cell-actions">
-                <button class="btn btn-outline btn-small" onclick="editProject(${p.id})">Edit</button>
-                <button class="btn btn-danger btn-small" onclick="deleteProject(${p.id})">Delete</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+  function tableHTML(items, label) {
+    if (!items.length) return `<div class="section-divider">${label}</div><div class="empty-state" style="margin-bottom:24px">No ${label.toLowerCase()} yet.</div>`;
+    return `
+      <div class="section-divider">${label}</div>
+      <div class="table-wrap" style="margin-bottom:24px">
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Category</th><th>Year</th><th>Media</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${items.map(p => `
+              <tr>
+                <td class="cell-name">${esc(p.name)}</td>
+                <td><span class="cell-tag">${esc(p.category)}</span></td>
+                <td>${esc(p.year)}</td>
+                <td>${(p.media || []).length} files</td>
+                <td class="cell-actions">
+                  <button class="btn btn-outline btn-small" onclick="editProject(${p.id})">Edit</button>
+                  <button class="btn btn-danger btn-small" onclick="deleteProject(${p.id})">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  el.innerHTML = tableHTML(authorProjects, 'Author Videos') + tableHTML(commercialProjects, 'Commercial Videos');
 }
 
 function showProjectForm(project = null) {
@@ -91,8 +111,12 @@ function showProjectForm(project = null) {
   list.style.display = 'none';
   form.style.display = '';
 
-  const p = project || { name: '', category: '', year: '', description: '', role: '', duration: '', tags: [], media: [], sort_order: 0 };
+  const p = project || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: 'author' };
   const isEdit = !!project;
+
+  const tagsChips = (p.tags || []).map(t =>
+    `<span class="tag-chip">${esc(t)} <button onclick="this.parentElement.remove()">&times;</button></span>`
+  ).join('');
 
   form.innerHTML = `
     <button class="btn-back" onclick="hideProjectForm()">&larr; Back to list</button>
@@ -102,17 +126,21 @@ function showProjectForm(project = null) {
         <label class="form-label">Name</label>
         <input class="form-input" id="pf-name" value="${esc(p.name)}" placeholder="Project name">
       </div>
-      <div class="form-group">
+      <div class="form-group" style="position:relative">
         <label class="form-label">Category</label>
-        <input class="form-input" id="pf-category" value="${esc(p.category)}" placeholder="YouTube · 3D Animation">
+        <input class="form-input" id="pf-category" value="${esc(p.category)}" placeholder="YouTube · 3D Animation" autocomplete="off">
+        <div class="ac-dropdown" id="pf-cat-dd"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Year</label>
         <input class="form-input" id="pf-year" value="${esc(p.year)}" placeholder="2026">
       </div>
       <div class="form-group">
-        <label class="form-label">Role</label>
-        <input class="form-input" id="pf-role" value="${esc(p.role)}" placeholder="3D Artist">
+        <label class="form-label">Section</label>
+        <select class="form-input" id="pf-section">
+          <option value="author" ${(p.section || 'author') === 'author' ? 'selected' : ''}>Author Videos</option>
+          <option value="commercial" ${(p.section || 'author') === 'commercial' ? 'selected' : ''}>Commercial Videos</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Duration</label>
@@ -126,12 +154,13 @@ function showProjectForm(project = null) {
         <label class="form-label">Description</label>
         <textarea class="form-textarea" id="pf-desc" placeholder="Project description...">${esc(p.description)}</textarea>
       </div>
-      <div class="form-group full">
+      <div class="form-group full" style="position:relative">
         <label class="form-label">Tags (press Enter to add)</label>
         <div class="tags-input-wrap" id="pf-tags-wrap">
-          ${(p.tags || []).map(t => `<span class="tag-chip">${esc(t)} <button onclick="this.parentElement.remove()">&times;</button></span>`).join('')}
-          <input class="tags-input" id="pf-tags-input" placeholder="Add tag...">
+          ${tagsChips}
+          <input class="tags-input" id="pf-tags-input" placeholder="Add tag..." autocomplete="off">
         </div>
+        <div class="ac-dropdown" id="pf-tags-dd"></div>
       </div>
       <div class="form-group full">
         <label class="form-label">Media</label>
@@ -141,7 +170,11 @@ function showProjectForm(project = null) {
             +
             <input type="file" accept="image/*,video/*" style="display:none" onchange="addProjectMedia(this)">
           </label>
+          <button class="media-add" type="button" id="pf-media-yt" onclick="toggleDashYtPanel()" style="font-size:12px;color:red;font-weight:700">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
+          </button>
         </div>
+        <div id="pf-yt-panel" style="display:none"></div>
       </div>
     </div>
     <div style="margin-top:24px;display:flex;gap:12px">
@@ -151,29 +184,93 @@ function showProjectForm(project = null) {
   `;
 
   // Tags input handler
-  document.getElementById('pf-tags-input').addEventListener('keydown', e => {
+  const tagsInp = document.getElementById('pf-tags-input');
+  tagsInp.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.value.trim()) {
       e.preventDefault();
-      const tag = e.target.value.trim();
-      const chip = document.createElement('span');
-      chip.className = 'tag-chip';
-      chip.innerHTML = `${esc(tag)} <button onclick="this.parentElement.remove()">&times;</button>`;
-      e.target.parentElement.insertBefore(chip, e.target);
+      addTagChip(e.target.value.trim());
       e.target.value = '';
+      hideDd('pf-tags-dd');
     }
   });
+  tagsInp.addEventListener('focus', () => showTagsDd());
+  tagsInp.addEventListener('input', () => showTagsDd());
+
+  // Category autocomplete
+  const catInp = document.getElementById('pf-category');
+  catInp.addEventListener('focus', () => showCatDd());
+  catInp.addEventListener('input', () => showCatDd());
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', closeDropdowns);
 }
 
-let projectMediaList = [];
+function addTagChip(tag) {
+  const wrap = document.getElementById('pf-tags-wrap');
+  const inp = document.getElementById('pf-tags-input');
+  const chip = document.createElement('span');
+  chip.className = 'tag-chip';
+  chip.innerHTML = `${esc(tag)} <button onclick="this.parentElement.remove()">&times;</button>`;
+  wrap.insertBefore(chip, inp);
+}
+
+function showTagsDd() {
+  const inp = document.getElementById('pf-tags-input');
+  const dd = document.getElementById('pf-tags-dd');
+  if (!inp || !dd) return;
+  const val = inp.value.toLowerCase();
+  const existing = [...document.querySelectorAll('#pf-tags-wrap .tag-chip')].map(c => c.textContent.replace('×', '').trim().toLowerCase());
+  const filtered = getAllTags().filter(t => !existing.includes(t.toLowerCase()) && (!val || t.toLowerCase().includes(val)));
+  if (!filtered.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
+  dd.innerHTML = filtered.map(t => `<div class="ac-item" onmousedown="addTagChip('${esc(t)}'); hideDd('pf-tags-dd'); document.getElementById('pf-tags-input').value=''">${t}</div>`).join('');
+  dd.classList.add('open');
+}
+
+function showCatDd() {
+  const inp = document.getElementById('pf-category');
+  const dd = document.getElementById('pf-cat-dd');
+  if (!inp || !dd) return;
+  const val = inp.value.toLowerCase();
+  const filtered = getAllCategories().filter(c => !val || c.toLowerCase().includes(val));
+  if (!filtered.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
+  dd.innerHTML = filtered.map(c => `<div class="ac-item" onmousedown="document.getElementById('pf-category').value='${esc(c)}'; hideDd('pf-cat-dd')">${c}</div>`).join('');
+  dd.classList.add('open');
+}
+
+function hideDd(id) {
+  const dd = document.getElementById(id);
+  if (dd) { dd.innerHTML = ''; dd.classList.remove('open'); }
+}
+
+function closeDropdowns(e) {
+  if (!e.target.closest('#pf-tags-dd') && !e.target.closest('#pf-tags-input')) hideDd('pf-tags-dd');
+  if (!e.target.closest('#pf-cat-dd') && !e.target.closest('#pf-category')) hideDd('pf-cat-dd');
+}
 
 function mediaItemHTML(m, idx) {
   const isVideo = m.type === 'video';
+  const isYT = m.type === 'youtube';
+  let preview;
+  if (isYT) {
+    const thumb = m.thumb || `https://img.youtube.com/vi/${getYTId(m.src)}/hqdefault.jpg`;
+    preview = `<img src="${thumb}" alt=""><div style="position:absolute;top:3px;left:3px;background:red;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">YT</div>`;
+  } else if (isVideo) {
+    preview = `<video src="${m.src}" muted></video>`;
+  } else {
+    preview = `<img src="${m.src}" alt="">`;
+  }
   return `
-    <div class="media-item" data-src="${esc(m.src)}" data-type="${m.type}">
-      ${isVideo ? `<video src="${m.src}" muted></video>` : `<img src="${m.src}" alt="">`}
+    <div class="media-item" data-src="${esc(m.src)}" data-type="${m.type}"${m.start ? ` data-start="${m.start}"` : ''}${m.end ? ` data-end="${m.end}"` : ''}${m.thumb ? ` data-thumb="${esc(m.thumb)}"` : ''}>
+      ${preview}
       <button class="media-item-remove" onclick="this.parentElement.remove()">&times;</button>
     </div>
   `;
+}
+
+function getYTId(url) {
+  if (!url) return '';
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : '';
 }
 
 async function addProjectMedia(input) {
@@ -201,21 +298,155 @@ async function addProjectMedia(input) {
   }
 }
 
+// ===== YOUTUBE PANEL (dashboard) =====
+function toggleDashYtPanel() {
+  const panel = document.getElementById('pf-yt-panel');
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+
+  panel.style.display = '';
+  panel.innerHTML = `
+    <div style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--r)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
+        <span style="font-size:13px;font-weight:600">Add YouTube Video</span>
+      </div>
+      <input class="form-input" id="pf-yt-url" placeholder="https://youtube.com/watch?v=..." style="width:100%;margin-bottom:8px">
+      <div id="pf-yt-preview" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:10px;margin-bottom:8px">
+        <div style="flex:1"><label class="form-label" style="margin-bottom:4px">Start</label><input class="form-input pf-yt-time" id="pf-yt-start" placeholder="0:00" inputmode="numeric" style="width:100%"></div>
+        <div style="flex:1"><label class="form-label" style="margin-bottom:4px">End</label><input class="form-input pf-yt-time" id="pf-yt-end" placeholder="0:00" inputmode="numeric" style="width:100%"></div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label class="form-label" style="margin-bottom:4px">Custom thumbnail (optional)</label>
+        <label class="btn btn-outline btn-small" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload
+          <input type="file" accept="image/*,video/*" style="display:none" onchange="dashYtThumbUpload(this)">
+        </label>
+        <div id="pf-yt-thumb-preview" style="margin-top:6px"></div>
+        <input type="hidden" id="pf-yt-thumb-url" value="">
+      </div>
+      <button class="btn btn-primary btn-small" onclick="confirmDashYt()">Add Video</button>
+      <button class="btn btn-outline btn-small" onclick="document.getElementById('pf-yt-panel').style.display='none'">Cancel</button>
+    </div>
+  `;
+
+  // Live preview
+  const inp = document.getElementById('pf-yt-url');
+  inp.addEventListener('input', () => {
+    const prev = document.getElementById('pf-yt-preview');
+    const id = getYTId(inp.value);
+    if (id) {
+      prev.innerHTML = `<img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" style="width:100%;border-radius:8px;max-width:280px">`;
+    } else { prev.innerHTML = ''; }
+  });
+
+  // Auto-format time on blur
+  panel.querySelectorAll('.pf-yt-time').forEach(ti => {
+    ti.addEventListener('blur', () => {
+      if (ti.value.trim()) ti.value = dashFormatTime(ti.value);
+    });
+  });
+
+  setTimeout(() => inp.focus(), 50);
+}
+
+function dashParseTime(val) {
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return 0;
+  const n = parseInt(digits, 10);
+  if (n < 100) return n;
+  if (n < 10000) return Math.floor(n / 100) * 60 + (n % 100);
+  return Math.floor(n / 10000) * 3600 + Math.floor((n % 10000) / 100) * 60 + (n % 100);
+}
+
+function dashFormatTime(val) {
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return '';
+  const n = parseInt(digits, 10);
+  if (n < 100) return `0:${String(n).padStart(2, '0')}`;
+  if (n < 10000) return `${Math.floor(n / 100)}:${String(n % 100).padStart(2, '0')}`;
+  return `${Math.floor(n / 10000)}:${String(Math.floor((n % 10000) / 100)).padStart(2, '0')}:${String(n % 100).padStart(2, '0')}`;
+}
+
+function dashSecondsToHMS(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+async function dashYtThumbUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const result = await uploadFile(file);
+    document.getElementById('pf-yt-thumb-url').value = result.url;
+    const prev = document.getElementById('pf-yt-thumb-preview');
+    if (file.type.startsWith('video')) {
+      prev.innerHTML = `<video src="${result.url}" muted autoplay loop style="width:100%;max-width:200px;border-radius:8px"></video>`;
+    } else {
+      prev.innerHTML = `<img src="${result.url}" style="width:100%;max-width:200px;border-radius:8px">`;
+    }
+    showStatus('Thumbnail uploaded.');
+  } catch { showStatus('Upload failed.', 'error'); }
+}
+
+function confirmDashYt() {
+  const url = document.getElementById('pf-yt-url').value.trim();
+  if (!url) return;
+  const ytId = getYTId(url);
+  if (!ytId) { showStatus('Invalid YouTube URL', 'error'); return; }
+
+  const startSec = dashParseTime(document.getElementById('pf-yt-start')?.value || '');
+  const endSec = dashParseTime(document.getElementById('pf-yt-end')?.value || '');
+  const thumbUrl = document.getElementById('pf-yt-thumb-url')?.value || '';
+
+  const m = { type: 'youtube', src: url };
+  if (startSec) m.start = startSec;
+  if (endSec) m.end = endSec;
+  if (thumbUrl) m.thumb = thumbUrl;
+
+  const item = document.createElement('div');
+  item.className = 'media-item';
+  item.dataset.src = url;
+  item.dataset.type = 'youtube';
+  if (startSec) item.dataset.start = startSec;
+  if (endSec) item.dataset.end = endSec;
+  if (thumbUrl) item.dataset.thumb = thumbUrl;
+
+  const thumb = thumbUrl || `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  const timeLabel = (startSec || endSec) ? `<div style="position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,0.7);color:#fff;font-size:8px;padding:1px 4px;border-radius:3px">${dashSecondsToHMS(startSec)}${endSec ? ' - ' + dashSecondsToHMS(endSec) : ''}</div>` : '';
+  item.innerHTML = `<img src="${thumb}" alt=""><div style="position:absolute;top:3px;left:3px;background:red;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">YT</div>${timeLabel}<button class="media-item-remove" onclick="this.parentElement.remove()">&times;</button>`;
+
+  const addBtn = document.getElementById('pf-media-add');
+  addBtn.parentElement.insertBefore(item, addBtn);
+
+  document.getElementById('pf-yt-panel').style.display = 'none';
+  document.getElementById('pf-yt-panel').innerHTML = '';
+  showStatus('YouTube video added.');
+}
+
 function getProjectFormData() {
   const tags = [...document.querySelectorAll('#pf-tags-wrap .tag-chip')].map(c => c.textContent.replace('×', '').trim());
-  const media = [...document.querySelectorAll('#pf-media .media-item')].map(el => ({
-    type: el.dataset.type,
-    src: el.dataset.src
-  }));
+  const media = [...document.querySelectorAll('#pf-media .media-item')].map(el => {
+    const obj = { type: el.dataset.type, src: el.dataset.src };
+    if (el.dataset.start) obj.start = +el.dataset.start;
+    if (el.dataset.end) obj.end = +el.dataset.end;
+    if (el.dataset.thumb) obj.thumb = el.dataset.thumb;
+    return obj;
+  });
 
   return {
     name: document.getElementById('pf-name').value,
     category: document.getElementById('pf-category').value,
     year: document.getElementById('pf-year').value,
     description: document.getElementById('pf-desc').value,
-    role: document.getElementById('pf-role').value,
     duration: document.getElementById('pf-duration').value,
     sort_order: +document.getElementById('pf-sort').value || 0,
+    section: document.getElementById('pf-section').value,
     tags,
     media
   };
@@ -257,6 +488,7 @@ async function deleteProject(id) {
 function hideProjectForm() {
   document.getElementById('projectForm').style.display = 'none';
   document.getElementById('projectsList').style.display = '';
+  document.removeEventListener('click', closeDropdowns);
 }
 
 // ========================
@@ -415,57 +647,6 @@ async function deleteClient(id) {
 function hideClientForm() {
   document.getElementById('clientForm').style.display = 'none';
   document.getElementById('clientsList').style.display = '';
-}
-
-// ========================
-// SETTINGS
-// ========================
-async function loadSettings() {
-  try {
-    const res = await fetch('/api/settings/showreel_url');
-    const { value } = await res.json();
-    const input = document.getElementById('showreel-url');
-    if (input) input.value = value || '';
-    updateShowreelPreview(value);
-  } catch {}
-}
-
-function updateShowreelPreview(url) {
-  const preview = document.getElementById('showreel-preview');
-  if (!preview) return;
-  if (url) {
-    preview.innerHTML = `<video src="${url}" controls muted style="width:100%;display:block;"></video>`;
-  } else {
-    preview.innerHTML = '<div style="padding:24px;text-align:center;color:var(--dim);">No video set</div>';
-  }
-}
-
-async function uploadShowreel(input) {
-  const file = input.files[0];
-  if (!file) return;
-  try {
-    const result = await uploadFile(file);
-    document.getElementById('showreel-url').value = result.url;
-    updateShowreelPreview(result.url);
-    showStatus('Video uploaded. Click Save to apply.');
-  } catch {
-    showStatus('Upload failed.', 'error');
-  }
-}
-
-async function saveShowreel() {
-  const url = document.getElementById('showreel-url').value.trim();
-  const res = await fetch('/api/admin/settings/showreel_url', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ value: url })
-  });
-  if (res.ok) {
-    showStatus('Showreel updated!');
-    updateShowreelPreview(url);
-  } else {
-    showStatus('Failed to save.', 'error');
-  }
 }
 
 // ===== UTILS =====

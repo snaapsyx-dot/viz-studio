@@ -30,13 +30,14 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat_id in ADMIN_IDS:
         await update.message.reply_html(
             "Привет, админ! 👋\n\n"
-            "Я бот viz.studio. Сюда приходят заявки с сайта.\n\n"
+            "Я бот <b>Leywin</b>. Сюда приходят заявки с сайта.\n\n"
             "Команды:\n/start — начало\n/help — помощь"
         )
     else:
         await update.message.reply_html(
             "Привет! 👋\n\n"
-            "Я бот <b>viz.studio</b> — студии 3D-визуализации.\n\n"
+            "Я бот <b>Leywin</b> — студии 3D-визуализации.\n\n"
+            '🌐 <a href="http://193.124.67.245:4000">Наш сайт</a>\n\n'
             "Хотите связаться с нами? Просто напишите сообщение, "
             "и мы ответим в ближайшее время."
         )
@@ -50,11 +51,12 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "/start — приветствие\n"
             "/help — помощь\n\n"
             "Заявки с сайта приходят автоматически.\n"
-            "Чтобы ответить — реплайните на сообщение."
+            "Чтобы ответить — реплайните на сообщение.\n\n"
+            '🌐 <a href="http://193.124.67.245:4000">Сайт Leywin</a>'
         )
     else:
         await update.message.reply_text(
-            "Просто напишите ваше сообщение, и мы передадим его команде viz.studio.\n"
+            "Просто напишите ваше сообщение, и мы передадим его команде Leywin.\n"
             "Мы ответим вам в ближайшее время!"
         )
 
@@ -73,7 +75,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     user_id = int(line.replace("ID: ", "").strip())
                     await context.bot.send_message(
                         user_id,
-                        f"💬 <b>Ответ от viz.studio:</b>\n\n{update.message.text}",
+                        f"💬 <b>Ответ от Leywin:</b>\n\n{update.message.text}",
                         parse_mode="HTML"
                     )
                     await update.message.reply_text("✅ Ответ отправлен.")
@@ -122,7 +124,7 @@ class NotifyHandler(BaseHTTPRequestHandler):
                 text = (
                     f"📧 <b>Новая заявка с сайта</b>\n\n"
                     f"Email: <code>{email}</code>\n\n"
-                    f"Клиент оставил email для связи на viz.studio"
+                    f'Клиент оставил email для связи на <a href="http://193.124.67.245:4000">Leywin</a>'
                 )
                 bot = Bot(
                     token=BOT_TOKEN,
@@ -161,7 +163,7 @@ def run_http_server():
 # ===== MAIN =====
 
 def main():
-    print("  viz.studio Telegram bot starting...")
+    print("  Leywin Telegram bot starting...")
 
     # Start HTTP server in a thread
     http_thread = threading.Thread(target=run_http_server, daemon=True)
@@ -178,7 +180,7 @@ def main():
     bot_app.add_handler(CommandHandler("help", help_cmd))
     bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("  viz.studio Telegram bot started OK")
+    print("  Leywin Telegram bot started OK")
     bot_app.run_polling(drop_pending_updates=True)
 
 

@@ -120,6 +120,7 @@ async function initDB() {
     tags TEXT DEFAULT '[]',
     media TEXT DEFAULT '[]',
     sort_order INTEGER DEFAULT 0,
+    section TEXT DEFAULT 'author',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -156,48 +157,48 @@ async function initDB() {
         category: 'YouTube · 3D Animation',
         year: '2026',
         description: 'A fully animated 3D intro sequence for one of YouTube\'s biggest creators. The brief was to create a cinematic, high-energy opener that captures the spirit of the channel.',
-        role: '3D Artist & Animator',
         duration: '3 weeks',
         tags: JSON.stringify(['Blender', 'After Effects', 'Animation', '3D Modeling']),
         media: JSON.stringify([
           { type: 'video', src: '/Videos/1110400_Tongue_Licking_1280x720.mp4' },
           { type: 'image', src: '/Photos/png1.jpg' }
         ]),
-        sort_order: 0
+        sort_order: 0,
+        section: 'author'
       },
       {
         name: 'John Nellis — Brand Pack',
         category: 'YouTube · Motion Graphics',
         year: '2025',
         description: 'A complete visual brand package including animated thumbnails, channel overlays, and dynamic transitions. Designed to elevate the channel\'s visual identity.',
-        role: 'Motion Designer',
         duration: '2 weeks',
         tags: JSON.stringify(['Cinema 4D', 'After Effects', 'Branding', 'Motion Graphics']),
         media: JSON.stringify([
           { type: 'image', src: '/Photos/png1.jpg' },
           { type: 'video', src: '/Videos/1110400_Tongue_Licking_1280x720.mp4' }
         ]),
-        sort_order: 1
+        sort_order: 1,
+        section: 'commercial'
       },
       {
         name: 'Matthew Beem — Ad Integration',
         category: 'YouTube · Product Visual',
         year: '2025',
         description: 'Photorealistic 3D product showcases designed for seamless sponsor integrations. Each product was modeled, textured, and lit to match the channel\'s visual tone.',
-        role: '3D Visualization',
         duration: '1 week',
         tags: JSON.stringify(['Blender', 'Substance 3D', 'Product Viz', 'Rendering']),
         media: JSON.stringify([
           { type: 'video', src: '/Videos/1110400_Tongue_Licking_1280x720.mp4' },
           { type: 'image', src: '/Photos/png1.jpg' }
         ]),
-        sort_order: 2
+        sort_order: 2,
+        section: 'commercial'
       }
     ];
 
-    const stmt = db.prepare("INSERT INTO projects (name, category, year, description, role, duration, tags, media, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    const stmt = db.prepare("INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     for (const p of defaultProjects) {
-      stmt.run([p.name, p.category, p.year, p.description, p.role, p.duration, p.tags, p.media, p.sort_order]);
+      stmt.run([p.name, p.category, p.year, p.description, p.duration, p.tags, p.media, p.sort_order, p.section]);
     }
     stmt.free();
   }
@@ -288,19 +289,19 @@ app.get('/api/clients', (req, res) => {
 
 // ===== ADMIN API: PROJECTS =====
 app.post('/api/admin/projects', requireAdmin, (req, res) => {
-  const { name, category, year, description, role, duration, tags, media, sort_order } = req.body;
+  const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
   dbRun(
-    "INSERT INTO projects (name, category, year, description, role, duration, tags, media, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [name, category || '', year || '', description || '', role || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0]
+    "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author']
   );
   res.json({ success: true, id: db.exec("SELECT last_insert_rowid()")[0].values[0][0] });
 });
 
 app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
-  const { name, category, year, description, role, duration, tags, media, sort_order } = req.body;
+  const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
   dbRun(
-    "UPDATE projects SET name=?, category=?, year=?, description=?, role=?, duration=?, tags=?, media=?, sort_order=? WHERE id=?",
-    [name, category || '', year || '', description || '', role || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, req.params.id]
+    "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=? WHERE id=?",
+    [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', req.params.id]
   );
   res.json({ success: true });
 });
@@ -431,7 +432,7 @@ app.use((req, res) => {
 // ===== START =====
 initDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`\n  viz.studio server running at http://localhost:${PORT}\n`);
+    console.log(`\n  Leywin server running at http://localhost:${PORT}\n`);
     startBot();
   });
 }).catch(err => {

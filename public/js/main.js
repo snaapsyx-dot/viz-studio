@@ -8,7 +8,7 @@ const translations = {
     nav_about: 'About',
     nav_cta: 'Get in touch',
     // Hero
-    hero_eyebrow: '3D Visualization Studio',
+    hero_eyebrow: '3D Artist & Motion Designer',
     hero_h1_1: 'Render the',
     hero_h1_2: 'impossible.',
     hero_desc: 'Cinematic 3D visuals for YouTube creators with millions of subscribers. From concept to final frame.',
@@ -16,17 +16,16 @@ const translations = {
     hero_btn_project: 'Start a project',
     // Loader
     loader_text: 'Loading experience',
-    // Showreel
-    showreel_label: 'Showreel',
-    showreel_heading_1: 'See it ',
-    showreel_heading_em: 'in motion.',
-    showreel_sub: 'A glimpse into cinematic 3D worlds crafted for top-tier creators.',
-    showreel_play: 'Play Showreel 2026',
-    // Portfolio
-    portfolio_label: 'Portfolio',
-    portfolio_heading_1: 'Selected ',
-    portfolio_heading_em: 'works.',
-    portfolio_sub: 'Each project is a unique visual story, built from scratch.',
+    // Author videos
+    author_label: 'Author',
+    author_heading_1: 'Author ',
+    author_heading_em: 'videos.',
+    author_sub: 'Personal creative projects and experimental 3D work.',
+    // Commercial videos
+    commercial_label: 'Commercial',
+    commercial_heading_1: 'Commercial ',
+    commercial_heading_em: 'videos.',
+    commercial_sub: 'Professional 3D content for brands and creators.',
     // Clients
     clients_label: 'Clients',
     clients_heading_1: 'Trusted by ',
@@ -68,7 +67,7 @@ const translations = {
     about_label: 'About',
     about_heading_1: 'The person behind ',
     about_heading_em: 'the pixels.',
-    about_h3: 'Hey, I\'m the creator of viz<span class="acc">.</span>studio',
+    about_h3: 'Hey, I\'m the creator of Leywin',
     about_p1: 'I craft cinematic 3D worlds for some of the biggest YouTube creators on the planet. From photorealistic product shots to fully animated intros — bringing ideas to life in three dimensions.',
     about_p2: 'With 3+ years of experience and 50M+ subscribers reached, I know what makes content pop.',
     about_link: 'Let\'s work together <span>&#8594;</span>',
@@ -78,7 +77,7 @@ const translations = {
     cta_placeholder: 'your@email.com',
     cta_btn: 'Send',
     // Footer
-    footer_copy: '© 2026 viz.studio',
+    footer_copy: '© 2026 Leywin',
     // Stats
     stat_1: 'YouTube Clients',
     stat_2: 'Total Subscribers',
@@ -103,22 +102,21 @@ const translations = {
     nav_clients: 'Клиенты',
     nav_about: 'О нас',
     nav_cta: 'Связаться',
-    hero_eyebrow: 'Студия 3D-визуализации',
+    hero_eyebrow: '3D-артист и моушн-дизайнер',
     hero_h1_1: 'Рендерим',
     hero_h1_2: 'невозможное.',
     hero_desc: 'Кинематографичная 3D-графика для YouTube-блогеров с миллионами подписчиков. От концепта до финального кадра.',
     hero_btn_works: 'Смотреть работы',
     hero_btn_project: 'Начать проект',
     loader_text: 'Загрузка',
-    showreel_label: 'Шоурил',
-    showreel_heading_1: 'Смотрите ',
-    showreel_heading_em: 'в движении.',
-    showreel_sub: 'Кинематографичные 3D-миры, созданные для топовых креаторов.',
-    showreel_play: 'Шоурил 2026',
-    portfolio_label: 'Портфолио',
-    portfolio_heading_1: 'Избранные ',
-    portfolio_heading_em: 'работы.',
-    portfolio_sub: 'Каждый проект — уникальная визуальная история, созданная с нуля.',
+    author_label: 'Авторские',
+    author_heading_1: 'Видео ',
+    author_heading_em: 'от автора.',
+    author_sub: 'Личные креативные проекты и экспериментальные 3D-работы.',
+    commercial_label: 'Коммерческие',
+    commercial_heading_1: 'Видео ',
+    commercial_heading_em: 'коммерческие.',
+    commercial_sub: 'Профессиональный 3D-контент для брендов и креаторов.',
     clients_label: 'Клиенты',
     clients_heading_1: 'Нам доверяют ',
     clients_heading_em: 'лучшие.',
@@ -156,7 +154,7 @@ const translations = {
     about_label: 'О нас',
     about_heading_1: 'Человек за ',
     about_heading_em: 'пикселями.',
-    about_h3: 'Привет, я создатель viz<span class="acc">.</span>studio',
+    about_h3: 'Привет, я создатель Leywin',
     about_p1: 'Я создаю кинематографичные 3D-миры для крупнейших YouTube-блогеров планеты. От фотореалистичных продуктовых шотов до полностью анимированных интро — воплощаю идеи в трёх измерениях.',
     about_p2: 'Более 3 лет опыта и 50M+ подписчиков у моих клиентов — я знаю, что делает контент выдающимся.',
     about_link: 'Давайте работать вместе <span>&#8594;</span>',
@@ -164,7 +162,7 @@ const translations = {
     cta_sub: 'Оставьте свой email, и мы обсудим, как 3D-визуал сделает ваш контент незабываемым.',
     cta_placeholder: 'ваш@email.com',
     cta_btn: 'Отправить',
-    footer_copy: '© 2026 viz.studio',
+    footer_copy: '© 2026 Leywin',
     stat_1: 'YouTube-клиентов',
     stat_2: 'Всего подписчиков',
     stat_3: 'Лет опыта',
@@ -234,6 +232,92 @@ let isAdmin = false;
 
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
+// ===== UI SOUNDS (Web Audio API) =====
+let audioCtx;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+
+    switch (type) {
+      case 'click': // soft click for nav
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.06);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+        break;
+      case 'hover': // subtle tick
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.start(now);
+        osc.stop(now + 0.04);
+        break;
+      case 'open': // modal open — ascending
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+      case 'close': // modal close — descending
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(700, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.1);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+      case 'success': // short happy ding
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.setValueAtTime(900, now + 0.08);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+        break;
+      case 'whoosh': // soft pop for nav
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(380, now + 0.07);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        osc.start(now);
+        osc.stop(now + 0.09);
+        break;
+      case 'easter': // cube color change — playful chord
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523, now); // C5
+        osc.frequency.setValueAtTime(659, now + 0.08); // E5
+        osc.frequency.setValueAtTime(784, now + 0.16); // G5
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+        break;
+    }
+  } catch {}
+}
+window.playSound = playSound;
+
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
   await checkAdminStatus();
@@ -246,7 +330,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initHeroAnimations();
   initReveal();
   initStats();
-  initShowreel();
   initAdminTrigger();
   initNavScroll();
   if (!isTouchDevice) initCubeFollow();
@@ -256,18 +339,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ===== DATA =====
 async function loadData() {
   try {
-    const [pRes, cRes, sRes] = await Promise.all([
+    const [pRes, cRes] = await Promise.all([
       fetch('/api/projects'),
-      fetch('/api/clients'),
-      fetch('/api/settings/showreel_url')
+      fetch('/api/clients')
     ]);
     projectsData = await pRes.json();
     clientsData = await cRes.json();
-    const showreel = await sRes.json();
-    if (showreel.value) {
-      const vid = document.getElementById('showreelVideo');
-      if (vid) vid.src = showreel.value;
-    }
   } catch (e) {
     console.warn('API not available, using inline data');
   }
@@ -316,20 +393,57 @@ function renderClients() {
   refreshCursorTargets();
 }
 
-// ===== RENDER WORKS =====
+// ===== YOUTUBE HELPERS =====
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function getYouTubeThumb(url) {
+  const id = getYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+}
+
+function getYouTubeEmbed(url, start, end) {
+  const id = getYouTubeId(url);
+  if (!id) return '';
+  let params = 'autoplay=1&rel=0&enablejsapi=1';
+  if (start) params += `&start=${start}`;
+  if (end) params += `&end=${end}`;
+  return `https://www.youtube.com/embed/${id}?${params}`;
+}
+
+// ===== RENDER WORKS (two sections) =====
 function renderWorks() {
-  const grid = document.getElementById('worksGrid');
+  renderWorksSection('author', document.getElementById('authorWorksGrid'));
+  renderWorksSection('commercial', document.getElementById('commercialWorksGrid'));
+}
+
+function renderWorksSection(section, grid) {
   if (!grid) return;
-  if (!projectsData.length && !isAdmin) return;
+  const items = projectsData.filter(p => (p.section || 'author') === section);
+  if (!items.length && !isAdmin) { grid.innerHTML = ''; return; }
 
   const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 
-  grid.innerHTML = projectsData.map((p, i) => {
+  grid.innerHTML = items.map((p, i) => {
+    const globalIdx = projectsData.indexOf(p);
     const firstMedia = (p.media && p.media[0]) || {};
+    const isYT = firstMedia.type === 'youtube';
     const isVideo = firstMedia.type === 'video';
-    const thumbHTML = isVideo
-      ? `<video src="${firstMedia.src}" autoplay muted loop playsinline></video>`
-      : `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}">`;
+    let thumbHTML;
+    if (isYT) {
+      const ytThumb = firstMedia.thumb || getYouTubeThumb(firstMedia.src);
+      const isThumbVid = firstMedia.thumb && (firstMedia.thumb.endsWith('.mp4') || firstMedia.thumb.endsWith('.webm') || firstMedia.thumb.endsWith('.mov'));
+      thumbHTML = isThumbVid
+        ? `<video src="${firstMedia.thumb}" autoplay muted loop playsinline></video><div class="yt-play-badge"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="#fff"/></svg></div>`
+        : `<img src="${ytThumb}" alt="${p.name}"><div class="yt-play-badge"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="#fff"/></svg></div>`;
+    } else if (isVideo) {
+      thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline></video>`;
+    } else {
+      thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}">`;
+    }
 
     const editBtn = isAdmin
       ? `<button class="inline-edit-btn" onclick="event.stopPropagation(); openEditProject(${p.id})" title="Edit">${pencilSVG}</button>`
@@ -338,7 +452,7 @@ function renderWorks() {
     const dragAttr = isAdmin ? `draggable="true" data-project-id="${p.id}" data-sort="${p.sort_order}"` : '';
 
     return `
-      <div class="work-card ${i === 0 ? 'featured' : ''} reveal ${i > 0 ? 'r-d' + i : ''}" ${dragAttr} onclick="openProject(${i})">
+      <div class="work-card ${i === 0 ? 'featured' : ''} reveal ${i > 0 ? 'r-d' + i : ''}" ${dragAttr} onclick="openProject(${globalIdx})">
         ${editBtn}
         <div class="work-thumb">
           ${thumbHTML}
@@ -360,7 +474,7 @@ function renderWorks() {
 
   if (isAdmin) {
     grid.insertAdjacentHTML('beforeend', `
-      <button class="inline-add-btn" onclick="openEditProject(null)">
+      <button class="inline-add-btn" onclick="openEditProject(null, '${section}')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Project
       </button>
@@ -368,8 +482,7 @@ function renderWorks() {
     initWorksDragDrop(grid);
   }
 
-  // Re-observe new elements
-  document.querySelectorAll('.works-grid .reveal').forEach(el => revealObs?.observe(el));
+  grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
   refreshCursorTargets();
 }
 
@@ -575,107 +688,7 @@ function initStats() {
   obs.observe(bar);
 }
 
-// ===== SHOWREEL =====
-function addShowreelEditBtn() {
-  const wrap = document.querySelector('.reel-wrap');
-  if (!wrap || !isAdmin || wrap.querySelector('.inline-edit-btn')) return;
-  const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  const btn = document.createElement('button');
-  btn.className = 'inline-edit-btn';
-  btn.title = 'Change Showreel';
-  btn.innerHTML = pencilSVG;
-  btn.style.zIndex = '20';
-  btn.onclick = (e) => { e.stopPropagation(); openEditShowreel(); };
-  wrap.style.position = 'relative';
-  wrap.appendChild(btn);
-}
-
-function initShowreel() {
-  const wrap = document.querySelector('.reel-wrap');
-  if (!wrap) return;
-
-  addShowreelEditBtn();
-
-  const video = wrap.querySelector('video');
-  const overlay = wrap.querySelector('.reel-overlay');
-  const controls = wrap.querySelector('.reel-controls');
-  const playPauseBtn = wrap.querySelector('.reel-play-pause');
-  const muteBtn = wrap.querySelector('.reel-mute');
-  const fullscreenBtn = wrap.querySelector('.reel-fullscreen');
-  const progressBar = wrap.querySelector('.reel-progress');
-  const progressFill = wrap.querySelector('.reel-progress-fill');
-  const timeDisplay = wrap.querySelector('.reel-time');
-
-  if (!video) return;
-
-  // Initially paused with overlay
-  video.pause();
-  video.muted = true;
-  video.currentTime = 0;
-
-  overlay.addEventListener('click', () => {
-    overlay.classList.add('hidden');
-    controls.classList.add('active');
-    video.muted = false;
-    video.play();
-    updatePlayPauseIcon();
-  });
-
-  // Click anywhere on the video to play/pause
-  video.addEventListener('click', () => {
-    if (video.paused) { video.play(); } else { video.pause(); }
-    updatePlayPauseIcon();
-  });
-
-  playPauseBtn?.addEventListener('click', () => {
-    if (video.paused) { video.play(); } else { video.pause(); }
-    updatePlayPauseIcon();
-  });
-
-  muteBtn?.addEventListener('click', () => {
-    video.muted = !video.muted;
-    updateMuteIcon();
-  });
-
-  fullscreenBtn?.addEventListener('click', () => {
-    if (wrap.requestFullscreen) wrap.requestFullscreen();
-    else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-  });
-
-  progressBar?.addEventListener('click', e => {
-    const rect = progressBar.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    video.currentTime = ratio * video.duration;
-  });
-
-  video.addEventListener('timeupdate', () => {
-    if (!video.duration) return;
-    const pct = (video.currentTime / video.duration) * 100;
-    if (progressFill) progressFill.style.width = pct + '%';
-    if (timeDisplay) timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
-  });
-
-  video.addEventListener('ended', () => {
-    video.currentTime = 0;
-    overlay.classList.remove('hidden');
-    controls.classList.remove('active');
-    updatePlayPauseIcon();
-  });
-
-  function updatePlayPauseIcon() {
-    if (!playPauseBtn) return;
-    playPauseBtn.innerHTML = video.paused
-      ? '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>'
-      : '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-  }
-
-  function updateMuteIcon() {
-    if (!muteBtn) return;
-    muteBtn.innerHTML = video.muted
-      ? '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" stroke-width="2"/><line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" stroke-width="2"/></svg>'
-      : '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
-  }
-}
+// (Showreel removed)
 
 function formatTime(s) {
   const m = Math.floor(s / 60);
@@ -687,6 +700,7 @@ function formatTime(s) {
 document.querySelectorAll('.nav-a').forEach(a => {
   a.addEventListener('click', e => {
     e.preventDefault();
+    playSound('whoosh');
     const target = document.querySelector(a.getAttribute('href'));
     if (target) {
       if (lenisInstance) {
@@ -711,7 +725,7 @@ function openProject(idx) {
   renderProjectMedia(media, p, 0);
 
   let detailsHTML = '';
-  const details = { Client: p.name.split('—')[0]?.trim() || '', Year: p.year, Role: p.role, Duration: p.duration };
+  const details = { Client: p.name.split('—')[0]?.trim() || '', Year: p.year, Duration: p.duration };
   for (const [k, v] of Object.entries(details)) {
     if (v) detailsHTML += `<div><div class="pj-detail-label">${k}</div><div class="pj-detail-value">${v}</div></div>`;
   }
@@ -732,6 +746,7 @@ function openProject(idx) {
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
   if (lenisInstance) lenisInstance.stop();
+  playSound('open');
   refreshCursorTargets();
 }
 
@@ -751,6 +766,7 @@ function renderProjectMedia(container, project, index) {
   ` : '';
 
   const isVideo = m.type === 'video';
+  const isYT = m.type === 'youtube';
 
   const videoControlsHTML = isVideo ? `
     <div class="modal-video-controls">
@@ -767,9 +783,16 @@ function renderProjectMedia(container, project, index) {
     </div>
   ` : '';
 
-  container.innerHTML = (isVideo
-    ? `<video src="${m.src}" autoplay playsinline></video>`
-    : `<img src="${m.src}" alt="">`)
+  let mediaHTML;
+  if (isYT) {
+    mediaHTML = `<div class="yt-embed-wrap"><iframe src="${getYouTubeEmbed(m.src, m.start, m.end)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
+  } else if (isVideo) {
+    mediaHTML = `<video src="${m.src}" playsinline preload="auto"></video>`;
+  } else {
+    mediaHTML = `<img src="${m.src}" alt="">`;
+  }
+
+  container.innerHTML = mediaHTML
     + arrowsHTML
     + `<div class="project-media-nav">${dots}</div>`
     + videoControlsHTML;
@@ -778,6 +801,9 @@ function renderProjectMedia(container, project, index) {
   if (isVideo) {
     const vid = container.querySelector('video');
     if (vid) {
+      vid.volume = 0.1;
+      vid.muted = true;
+      vid.addEventListener('playing', () => { vid.muted = false; vid.volume = 0.1; }, { once: true });
       vid.addEventListener('timeupdate', () => {
         if (!vid.duration) return;
         const fill = container.querySelector('.modal-v-progress-fill');
@@ -789,6 +815,8 @@ function renderProjectMedia(container, project, index) {
         vid.currentTime = 0;
         vid.play();
       });
+      // Force play — muted autoplay always allowed
+      vid.play().catch(() => {});
     }
   }
 
@@ -826,9 +854,17 @@ window.switchProjectMedia = function(projIdx, mediaIdx) {
 
 function closeProject(e) {
   if (e && e.target !== e.currentTarget && !e.target.classList.contains('project-close')) return;
+  // Immediately kill all media to prevent sound leaking
+  const mediaContainer = document.getElementById('projectMedia');
+  if (mediaContainer) {
+    mediaContainer.querySelectorAll('video').forEach(v => { v.pause(); v.muted = true; v.src = ''; });
+    mediaContainer.querySelectorAll('iframe').forEach(f => { f.src = ''; });
+    mediaContainer.innerHTML = '';
+  }
   document.getElementById('projectOverlay').classList.remove('open');
   document.body.style.overflow = '';
   if (lenisInstance) lenisInstance.start();
+  playSound('close');
 }
 
 window.openProject = openProject;
@@ -867,6 +903,7 @@ async function handleEmail() {
   } catch (e) { /* silent */ }
   inp.value = '';
   showToast(t('toast_email_ok'));
+  playSound('success');
 }
 window.handleEmail = handleEmail;
 
@@ -923,7 +960,6 @@ async function submitPw() {
       isAdmin = true;
       renderWorks();
       renderClients();
-      addShowreelEditBtn();
       showAdminBar();
       refreshCursorTargets();
       showToast('Admin mode activated');
@@ -939,7 +975,16 @@ async function submitPw() {
 }
 window.submitPw = submitPw;
 
-// ===== CUBE FOLLOW MOUSE (triple-click toggle) =====
+// ===== CUBE FOLLOW MOUSE + EASTER EGG (4 clicks = color change) =====
+const cubeColorThemes = [
+  { accent: '#4f7df5', glow: 'rgba(79,125,245,0.3)', cls: null },           // default blue
+  { accent: '#a855f7', glow: 'rgba(168,85,247,0.3)', cls: 'cube-theme-purple' },
+  { accent: '#22c55e', glow: 'rgba(34,197,94,0.3)',  cls: 'cube-theme-green' },
+  { accent: '#ef4444', glow: 'rgba(239,68,68,0.3)',  cls: 'cube-theme-red' },
+  { accent: '#eab308', glow: 'rgba(234,179,8,0.3)',  cls: 'cube-theme-gold' }
+];
+let cubeThemeIdx = 0;
+
 function initCubeFollow() {
   const scene = document.querySelector('.cube-scene');
   const cubeObj = document.querySelector('.cube-obj');
@@ -954,17 +999,35 @@ function initCubeFollow() {
   scene.addEventListener('click', () => {
     clicks++;
     clearTimeout(timer);
-    timer = setTimeout(() => { clicks = 0; }, 600);
+    timer = setTimeout(() => { clicks = 0; }, 800);
 
-    if (clicks >= 2) {
+    if (clicks >= 4) {
       clicks = 0;
-      following = !following;
-      cubeObj.classList.toggle('follow-mode', following);
-      scene.classList.toggle('follow-active', following);
-
-      if (!following) {
-        cubeObj.style.transform = '';
-      }
+      // Easter egg: cycle cube color theme + global accent
+      const wrap = document.querySelector('.cube-wrap');
+      cubeColorThemes.forEach(t => { if (t.cls) wrap.classList.remove(t.cls); });
+      cubeThemeIdx = (cubeThemeIdx + 1) % cubeColorThemes.length;
+      const theme = cubeColorThemes[cubeThemeIdx];
+      if (theme.cls) wrap.classList.add(theme.cls);
+      // Change global accent color across entire site
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--accent-glow', theme.glow);
+      // Quick scale animation + sound
+      wrap.style.transition = 'transform 0.3s ease';
+      wrap.style.transform = 'scale(1.15)';
+      setTimeout(() => { wrap.style.transform = ''; }, 300);
+      playSound('easter');
+    } else if (clicks === 2) {
+      // Double click toggles follow mode
+      setTimeout(() => {
+        if (clicks === 2) {
+          clicks = 0;
+          following = !following;
+          cubeObj.classList.toggle('follow-mode', following);
+          scene.classList.toggle('follow-active', following);
+          if (!following) cubeObj.style.transform = '';
+        }
+      }, 250);
     }
   });
 
@@ -1009,6 +1072,7 @@ function initNavScroll() {
 function scrollToSection(sel) {
   const t = document.querySelector(sel);
   if (!t) return;
+  playSound('whoosh');
   if (lenisInstance) {
     lenisInstance.scrollTo(t, { offset: 90 });
   } else {
@@ -1133,6 +1197,77 @@ function deleteUploadedFile(url) {
   fetch('/api/admin/upload/' + encodeURIComponent(filename), { method: 'DELETE' }).catch(() => {});
 }
 
+// ---- Autocomplete helpers ----
+function getAllTags() {
+  const set = new Set();
+  projectsData.forEach(p => (p.tags || []).forEach(t => set.add(t)));
+  return [...set].sort();
+}
+
+function getAllCategories() {
+  const set = new Set();
+  projectsData.forEach(p => { if (p.category) set.add(p.category); });
+  return [...set].sort();
+}
+
+function showTagSuggestions() {
+  const inp = document.getElementById('ep-tags-input');
+  const dd = document.getElementById('ep-tags-dropdown');
+  if (!inp || !dd) return;
+  const val = inp.value.toLowerCase();
+  const existing = [...document.querySelectorAll('#ep-tags-wrap .edit-tag-chip')].map(c => c.textContent.replace('×', '').trim().toLowerCase());
+  const all = getAllTags().filter(t => !existing.includes(t.toLowerCase()) && (!val || t.toLowerCase().includes(val)));
+  if (!all.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
+  dd.innerHTML = all.map(t => `<div class="ac-item" onmousedown="addTagFromSuggestion('${escHtml(t)}')">${t}</div>`).join('');
+  dd.classList.add('open');
+}
+window.showTagSuggestions = showTagSuggestions;
+
+function addTagFromSuggestion(tag) {
+  const inp = document.getElementById('ep-tags-input');
+  const chip = document.createElement('span');
+  chip.className = 'edit-tag-chip';
+  chip.innerHTML = `${escHtml(tag)} <button onclick="this.parentElement.remove()">&times;</button>`;
+  inp.parentElement.insertBefore(chip, inp);
+  inp.value = '';
+  const dd = document.getElementById('ep-tags-dropdown');
+  if (dd) { dd.innerHTML = ''; dd.classList.remove('open'); }
+  playSound('click');
+}
+window.addTagFromSuggestion = addTagFromSuggestion;
+
+function showCategorySuggestions() {
+  const inp = document.getElementById('ep-category');
+  const dd = document.getElementById('ep-category-dropdown');
+  if (!inp || !dd) return;
+  const val = inp.value.toLowerCase();
+  const all = getAllCategories().filter(c => !val || c.toLowerCase().includes(val));
+  if (!all.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
+  dd.innerHTML = all.map(c => `<div class="ac-item" onmousedown="pickCategory('${escHtml(c)}')">${c}</div>`).join('');
+  dd.classList.add('open');
+}
+window.showCategorySuggestions = showCategorySuggestions;
+
+function pickCategory(cat) {
+  document.getElementById('ep-category').value = cat;
+  const dd = document.getElementById('ep-category-dropdown');
+  if (dd) { dd.innerHTML = ''; dd.classList.remove('open'); }
+  playSound('click');
+}
+window.pickCategory = pickCategory;
+
+// Close dropdowns on blur
+document.addEventListener('click', e => {
+  if (!e.target.closest('#ep-tags-dropdown') && !e.target.closest('#ep-tags-input')) {
+    const dd = document.getElementById('ep-tags-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
+  if (!e.target.closest('#ep-category-dropdown') && !e.target.closest('#ep-category')) {
+    const dd = document.getElementById('ep-category-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
+});
+
 // ---- Edit modal core ----
 function openEditModal(html) {
   const overlay = document.getElementById('editOverlay');
@@ -1141,12 +1276,14 @@ function openEditModal(html) {
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
   if (lenisInstance) lenisInstance.stop();
+  playSound('open');
 }
 
 function closeEditModal() {
   document.getElementById('editOverlay').classList.remove('open');
   document.body.style.overflow = '';
   if (lenisInstance) lenisInstance.start();
+  playSound('close');
 }
 window.closeEditModal = closeEditModal;
 
@@ -1165,10 +1302,10 @@ function escHtml(str) {
 }
 
 // ===== EDIT PROJECT =====
-function openEditProject(id) {
+function openEditProject(id, defaultSection) {
   const p = id ? projectsData.find(x => x.id === id) : null;
   const isNew = !p;
-  const data = p || { name: '', category: '', year: '', description: '', role: '', duration: '', tags: [], media: [], sort_order: 0 };
+  const data = p || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: defaultSection || 'author' };
 
   const tagsChips = (data.tags || []).map(t =>
     `<span class="edit-tag-chip">${escHtml(t)} <button onclick="this.parentElement.remove()">&times;</button></span>`
@@ -1176,9 +1313,24 @@ function openEditProject(id) {
 
   const mediaItems = (data.media || []).map((m, i) => {
     const isVid = m.type === 'video';
-    return `<div class="edit-media-thumb" data-src="${escHtml(m.src)}" data-type="${m.type}">
-      ${isVid ? `<video src="${m.src}" muted></video>` : `<img src="${m.src}" alt="">`}
-      <button class="edit-media-remove" onclick="deleteUploadedFile(this.parentElement.dataset.src); this.parentElement.remove()">&times;</button>
+    const isYT = m.type === 'youtube';
+    let preview;
+    if (isYT) {
+      const thumbSrc = m.thumb || getYouTubeThumb(m.src);
+      preview = `<img src="${thumbSrc}" alt="YouTube"><div class="yt-badge">YT</div>`;
+    } else if (isVid) {
+      preview = `<video src="${m.src}" muted></video>`;
+    } else {
+      preview = `<img src="${m.src}" alt="">`;
+    }
+    const deleteAction = isYT ? '' : `deleteUploadedFile(this.parentElement.dataset.src);`;
+    const startAttr = m.start ? ` data-start="${m.start}"` : '';
+    const endAttr = m.end ? ` data-end="${m.end}"` : '';
+    const thumbAttr = m.thumb ? ` data-thumb="${escHtml(m.thumb)}"` : '';
+    const timeLabel = (m.start || m.end) ? `<div class="yt-time-label">${secondsToHMS(m.start)}${m.end ? ' – ' + secondsToHMS(m.end) : ''}</div>` : '';
+    return `<div class="edit-media-thumb" data-src="${escHtml(m.src)}" data-type="${m.type}"${startAttr}${endAttr}${thumbAttr}>
+      ${preview}${timeLabel}
+      <button class="edit-media-remove" onclick="${deleteAction} this.parentElement.remove()">&times;</button>
     </div>`;
   }).join('');
 
@@ -1192,9 +1344,10 @@ function openEditProject(id) {
         <label>Name</label>
         <input id="ep-name" value="${escHtml(data.name)}" placeholder="Project name">
       </div>
-      <div class="edit-field">
+      <div class="edit-field" style="position:relative">
         <label>Category</label>
-        <input id="ep-category" value="${escHtml(data.category)}" placeholder="YouTube · 3D">
+        <input id="ep-category" value="${escHtml(data.category)}" placeholder="YouTube · 3D" autocomplete="off" onfocus="showCategorySuggestions()" oninput="showCategorySuggestions()">
+        <div class="autocomplete-dropdown" id="ep-category-dropdown"></div>
       </div>
     </div>
     <div class="edit-field-row">
@@ -1203,14 +1356,17 @@ function openEditProject(id) {
         <input id="ep-year" value="${escHtml(data.year)}" placeholder="2026">
       </div>
       <div class="edit-field">
-        <label>Role</label>
-        <input id="ep-role" value="${escHtml(data.role)}" placeholder="3D Artist">
+        <label>Duration</label>
+        <input id="ep-duration" value="${escHtml(data.duration)}" placeholder="2 weeks">
       </div>
     </div>
     <div class="edit-field-row">
       <div class="edit-field">
-        <label>Duration</label>
-        <input id="ep-duration" value="${escHtml(data.duration)}" placeholder="2 weeks">
+        <label>Section</label>
+        <select id="ep-section" class="edit-select">
+          <option value="author" ${(data.section || 'author') === 'author' ? 'selected' : ''}>Author Videos</option>
+          <option value="commercial" ${(data.section || 'author') === 'commercial' ? 'selected' : ''}>Commercial Videos</option>
+        </select>
       </div>
       <div class="edit-field">
         <label>Sort Order</label>
@@ -1221,12 +1377,13 @@ function openEditProject(id) {
       <label>Description</label>
       <textarea id="ep-desc" placeholder="Project description...">${escHtml(data.description)}</textarea>
     </div>
-    <div class="edit-field">
+    <div class="edit-field" style="position:relative">
       <label>Tags (Enter to add)</label>
       <div class="edit-tags-wrap" id="ep-tags-wrap">
         ${tagsChips}
-        <input class="edit-tags-input" id="ep-tags-input" placeholder="Add tag...">
+        <input class="edit-tags-input" id="ep-tags-input" placeholder="Add tag..." autocomplete="off" onfocus="showTagSuggestions()" oninput="showTagSuggestions()">
       </div>
+      <div class="autocomplete-dropdown" id="ep-tags-dropdown"></div>
     </div>
     <div class="edit-field">
       <label>Media</label>
@@ -1236,6 +1393,10 @@ function openEditProject(id) {
           +
           <input type="file" accept="image/*,video/*" style="display:none" onchange="inlineAddProjectMedia(this)">
         </label>
+        <button class="edit-media-add edit-media-yt" id="ep-media-yt" type="button" onclick="promptYouTubeUrl()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
+          YouTube
+        </button>
       </div>
     </div>
     <div class="edit-actions">
@@ -1288,21 +1449,179 @@ async function inlineAddProjectMedia(input) {
 window.inlineAddProjectMedia = inlineAddProjectMedia;
 window.deleteUploadedFile = deleteUploadedFile;
 
+function promptYouTubeUrl() {
+  // Toggle inline YouTube panel
+  let panel = document.getElementById('yt-url-panel');
+  if (panel) { panel.remove(); return; }
+
+  panel = document.createElement('div');
+  panel.id = 'yt-url-panel';
+  panel.className = 'yt-url-panel';
+  panel.innerHTML = `
+    <div class="yt-url-header">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
+      <span>Add YouTube Video</span>
+      <button class="yt-url-close" onclick="document.getElementById('yt-url-panel').remove()">&times;</button>
+    </div>
+    <input class="yt-url-input" id="yt-url-input" placeholder="https://youtube.com/watch?v=..." autofocus>
+    <div id="yt-url-preview" class="yt-url-preview"></div>
+    <div class="yt-url-times">
+      <div class="yt-url-time-group">
+        <label>Start</label>
+        <input id="yt-start-time" class="yt-time-inp" placeholder="0:00" inputmode="numeric">
+      </div>
+      <div class="yt-url-time-group">
+        <label>End</label>
+        <input id="yt-end-time" class="yt-time-inp" placeholder="0:00" inputmode="numeric">
+      </div>
+    </div>
+    <div class="yt-url-thumb-row">
+      <label>Custom thumbnail (optional)</label>
+      <label class="yt-url-thumb-upload">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload image/video
+        <input type="file" accept="image/*,video/*" style="display:none" id="yt-thumb-file" onchange="handleYtThumbUpload(this)">
+      </label>
+      <div id="yt-thumb-preview" class="yt-thumb-preview"></div>
+      <input type="hidden" id="yt-thumb-url" value="">
+    </div>
+    <button class="yt-url-add-btn" onclick="confirmYouTubeUrl()">Add Video</button>
+  `;
+
+  const mediaList = document.getElementById('ep-media-list');
+  mediaList.parentElement.appendChild(panel);
+
+  // Live preview on input
+  const inp = panel.querySelector('#yt-url-input');
+  inp.addEventListener('input', () => {
+    const prev = document.getElementById('yt-url-preview');
+    const id = getYouTubeId(inp.value);
+    if (id) {
+      prev.innerHTML = `<img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" alt="Preview">`;
+      prev.classList.add('has-preview');
+    } else {
+      prev.innerHTML = '';
+      prev.classList.remove('has-preview');
+    }
+  });
+  setTimeout(() => {
+    inp.focus();
+    // Auto-format time inputs on blur
+    panel.querySelectorAll('.yt-time-inp').forEach(ti => {
+      ti.addEventListener('blur', () => {
+        if (ti.value.trim()) ti.value = formatTimeInput(ti.value);
+      });
+    });
+  }, 50);
+}
+window.promptYouTubeUrl = promptYouTubeUrl;
+
+function parseTimeInput(val) {
+  // "1" → 1s, "122" → 1:22, "10230" → 1:02:30
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return 0;
+  const n = parseInt(digits, 10);
+  if (n < 100) return n; // just seconds
+  if (n < 10000) return Math.floor(n / 100) * 60 + (n % 100); // M:SS
+  return Math.floor(n / 10000) * 3600 + Math.floor((n % 10000) / 100) * 60 + (n % 100); // H:MM:SS
+}
+
+function formatTimeInput(val) {
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return '';
+  const n = parseInt(digits, 10);
+  if (n < 100) return `0:${String(n).padStart(2, '0')}`;
+  if (n < 10000) {
+    const m = Math.floor(n / 100);
+    const s = n % 100;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+  const h = Math.floor(n / 10000);
+  const m = Math.floor((n % 10000) / 100);
+  const s = n % 100;
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function secondsToHMS(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function secondsToRawDigits(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}${String(m).padStart(2,'0')}${String(s).padStart(2,'0')}`;
+  if (m > 0) return `${m}${String(s).padStart(2,'0')}`;
+  return `${s}`;
+}
+
+async function handleYtThumbUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const result = await inlineUploadFile(file);
+    document.getElementById('yt-thumb-url').value = result.url;
+    const prev = document.getElementById('yt-thumb-preview');
+    if (file.type.startsWith('video')) {
+      prev.innerHTML = `<video src="${result.url}" muted autoplay loop style="width:100%;border-radius:8px"></video>`;
+    } else {
+      prev.innerHTML = `<img src="${result.url}" style="width:100%;border-radius:8px">`;
+    }
+  } catch { showToast('Upload failed'); }
+}
+window.handleYtThumbUpload = handleYtThumbUpload;
+
+function confirmYouTubeUrl() {
+  const url = document.getElementById('yt-url-input').value.trim();
+  const startSec = parseTimeInput(document.getElementById('yt-start-time')?.value || '');
+  const endSec = parseTimeInput(document.getElementById('yt-end-time')?.value || '');
+  const thumbUrl = document.getElementById('yt-thumb-url')?.value || '';
+  if (!url) return;
+  const ytId = getYouTubeId(url);
+  if (!ytId) { showToast('Invalid YouTube URL'); return; }
+
+  const item = document.createElement('div');
+  item.className = 'edit-media-thumb';
+  item.dataset.src = url;
+  item.dataset.type = 'youtube';
+  if (startSec) item.dataset.start = startSec;
+  if (endSec) item.dataset.end = endSec;
+  if (thumbUrl) item.dataset.thumb = thumbUrl;
+  const timeLabel = (startSec || endSec) ? `<div class="yt-time-label">${secondsToHMS(startSec)}${endSec ? ' – ' + secondsToHMS(endSec) : ''}</div>` : '';
+  const thumbSrc = thumbUrl || getYouTubeThumb(url);
+  item.innerHTML = `<img src="${thumbSrc}" alt="YouTube"><div class="yt-badge">YT</div>${timeLabel}<button class="edit-media-remove" onclick="this.parentElement.remove()">&times;</button>`;
+  const addBtn = document.getElementById('ep-media-add');
+  addBtn.parentElement.insertBefore(item, addBtn);
+
+  document.getElementById('yt-url-panel').remove();
+  playSound('success');
+}
+window.confirmYouTubeUrl = confirmYouTubeUrl;
+
 async function saveEditProject(id) {
   const tags = [...document.querySelectorAll('#ep-tags-wrap .edit-tag-chip')].map(c => c.textContent.replace('×', '').trim());
-  const media = [...document.querySelectorAll('#ep-media-list .edit-media-thumb')].map(el => ({
-    type: el.dataset.type,
-    src: el.dataset.src
-  }));
+  const media = [...document.querySelectorAll('#ep-media-list .edit-media-thumb')].map(el => {
+    const obj = { type: el.dataset.type, src: el.dataset.src };
+    if (el.dataset.start) obj.start = +el.dataset.start;
+    if (el.dataset.end) obj.end = +el.dataset.end;
+    if (el.dataset.thumb) obj.thumb = el.dataset.thumb;
+    return obj;
+  });
 
   const data = {
     name: document.getElementById('ep-name').value,
     category: document.getElementById('ep-category').value,
     year: document.getElementById('ep-year').value,
     description: document.getElementById('ep-desc').value,
-    role: document.getElementById('ep-role').value,
     duration: document.getElementById('ep-duration').value,
     sort_order: +document.getElementById('ep-sort').value || 0,
+    section: document.getElementById('ep-section').value,
     tags, media
   };
 
@@ -1471,65 +1790,4 @@ async function reloadAndRender() {
   refreshCursorTargets();
 }
 
-// ===== EDIT SHOWREEL =====
-async function openEditShowreel() {
-  let currentUrl = document.getElementById('showreelVideo')?.src || '';
-
-  const html = `
-    <div class="edit-panel-header">
-      <div class="edit-panel-title">Change Showreel</div>
-      <button class="edit-panel-close" onclick="closeEditModal()">&times;</button>
-    </div>
-    <div class="edit-field">
-      <label>Video URL</label>
-      <input id="es-url" value="${escHtml(currentUrl)}" placeholder="/Videos/showreel.mp4">
-    </div>
-    <div class="edit-field">
-      <label>Or upload video</label>
-      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--border);cursor:pointer;color:var(--dim);font-size:13px;transition:border-color 0.2s,color 0.2s">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Upload Video
-        <input type="file" accept="video/*" style="display:none" onchange="inlineUploadShowreel(this)">
-      </label>
-      <div id="es-preview" style="margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);max-height:300px">
-        ${currentUrl ? '<video src="' + currentUrl + '" controls muted style="width:100%;display:block;max-height:300px"></video>' : '<div style="padding:24px;text-align:center;color:var(--dim)">No video</div>'}
-      </div>
-    </div>
-    <div class="edit-actions">
-      <button class="btn-save" onclick="saveEditShowreel()">Save</button>
-      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-    </div>
-  `;
-
-  openEditModal(html);
-}
-window.openEditShowreel = openEditShowreel;
-
-async function inlineUploadShowreel(input) {
-  const file = input.files[0];
-  if (!file) return;
-  try {
-    const result = await inlineUploadFile(file);
-    document.getElementById('es-url').value = result.url;
-    document.getElementById('es-preview').innerHTML = '<video src="' + result.url + '" controls muted style="width:100%;display:block;max-height:300px"></video>';
-  } catch { showToast('Upload failed'); }
-}
-window.inlineUploadShowreel = inlineUploadShowreel;
-
-async function saveEditShowreel() {
-  const url = document.getElementById('es-url').value.trim();
-  try {
-    const res = await fetch('/api/admin/settings/showreel_url', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: url })
-    });
-    if (res.ok) {
-      const vid = document.getElementById('showreelVideo');
-      if (vid) vid.src = url;
-      closeEditModal();
-      showToast('Showreel updated');
-    } else { showToast('Failed to save'); }
-  } catch { showToast('Server error'); }
-}
-window.saveEditShowreel = saveEditShowreel;
+// (Showreel edit removed)
