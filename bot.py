@@ -1,16 +1,24 @@
 import asyncio
 import json
+import os
+from pathlib import Path
+
+# Load .env if present
+_env = Path(__file__).parent / '.env'
+if _env.exists():
+    for line in _env.read_text().splitlines():
+        if '=' in line and not line.startswith('#'):
+            k, v = line.split('=', 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
 from telegram import Update, Bot
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = "8425299674:AAFKfYW0o425ibj0OSYyEmwoMNbBmwWestY"
-ADMIN_IDS = [382254550, 713806093]
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip()]
 
-# Telegram API proxy — if Telegram is blocked on your server,
-# set this to your Cloudflare Worker URL (see instructions below)
-# Leave empty string to use default api.telegram.org
-TELEGRAM_API_BASE = "https://viz-tg-proxy.snaapsyx.workers.dev/bot"
-TELEGRAM_API_FILE = "https://viz-tg-proxy.snaapsyx.workers.dev/file/bot"
+TELEGRAM_API_BASE = os.environ.get("TG_API_BASE", "")
+TELEGRAM_API_FILE = os.environ.get("TG_API_FILE", "")
 
 bot_app = None
 

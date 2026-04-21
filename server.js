@@ -1,3 +1,12 @@
+// Load .env file if present
+const _envPath = require('path').join(__dirname, '.env');
+if (require('fs').existsSync(_envPath)) {
+  require('fs').readFileSync(_envPath, 'utf8').split('\n').forEach(line => {
+    const match = line.match(/^\s*([\w]+)\s*=\s*(.*)\s*$/);
+    if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
+  });
+}
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -47,7 +56,7 @@ function notifyBot(email) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: 'viz-studio-secret-key-change-me',
+  secret: process.env.SESSION_SECRET || 'viz-studio-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 1000 * 60 * 60 * 4 } // 4 hours
@@ -87,7 +96,8 @@ const upload = multer({
 const DB_PATH = path.join(__dirname, 'database.sqlite');
 let db;
 
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync('Z67Z69Z67Z', 10);
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
 
 async function initDB() {
   const SQL = await initSqlJs();
@@ -371,14 +381,14 @@ app.post('/api/contact', (req, res) => {
 // ===== BOT POLLING API (bot fetches new contacts) =====
 app.get('/api/bot/contacts', (req, res) => {
   const secret = req.query.secret;
-  if (secret !== 'viz-bot-secret-2026') return res.status(403).json({ error: 'Forbidden' });
+  if (secret !== (process.env.BOT_SECRET || 'viz-bot-secret-2026')) return res.status(403).json({ error: 'Forbidden' });
   const rows = dbAll("SELECT id, email, created_at FROM contacts WHERE notified = 0 ORDER BY id ASC");
   res.json(rows);
 });
 
 app.post('/api/bot/contacts/mark', (req, res) => {
   const secret = req.query.secret;
-  if (secret !== 'viz-bot-secret-2026') return res.status(403).json({ error: 'Forbidden' });
+  if (secret !== (process.env.BOT_SECRET || 'viz-bot-secret-2026')) return res.status(403).json({ error: 'Forbidden' });
   const { ids } = req.body;
   if (ids && ids.length) {
     dbRun(`UPDATE contacts SET notified = 1 WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
