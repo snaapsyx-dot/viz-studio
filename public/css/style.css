@@ -1615,7 +1615,8 @@ footer {
 .inline-edit-btn svg { width: 16px; height: 16px; }
 
 .work-card:hover .inline-edit-btn,
-.client-cell:hover .inline-edit-btn {
+.client-cell:hover .inline-edit-btn,
+.reel-wrap:hover .inline-edit-btn {
   opacity: 1;
   transform: scale(1);
 }
@@ -1867,4 +1868,36 @@ footer {
 /* Touch devices: show edit buttons always (no hover) */
 @media (pointer: coarse) {
   .inline-edit-btn { opacity: 1; transform: scale(1); }
+}
+
+/* Upload progress bar */
+#uploadProgressBar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  z-index: 9999;
+  background: rgba(255,255,255,0.05);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+#uploadProgressBar.active { opacity: 1; }
+
+.upload-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 0 2px 2px 0;
+  transition: width 0.15s;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.upload-progress-text {
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font);
 }

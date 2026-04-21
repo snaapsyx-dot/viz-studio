@@ -524,6 +524,19 @@ function initShowreel() {
   const wrap = document.querySelector('.reel-wrap');
   if (!wrap) return;
 
+  // Admin edit button for showreel
+  if (isAdmin) {
+    const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const btn = document.createElement('button');
+    btn.className = 'inline-edit-btn';
+    btn.title = 'Change Showreel';
+    btn.innerHTML = pencilSVG;
+    btn.style.zIndex = '20';
+    btn.onclick = (e) => { e.stopPropagation(); openEditShowreel(); };
+    wrap.style.position = 'relative';
+    wrap.appendChild(btn);
+  }
+
   const video = wrap.querySelector('video');
   const overlay = wrap.querySelector('.reel-overlay');
   const controls = wrap.querySelector('.reel-controls');
@@ -974,13 +987,53 @@ async function adminLogout() {
 }
 window.adminLogout = adminLogout;
 
-// ---- Upload helper ----
-async function inlineUploadFile(file) {
-  const fd = new FormData();
-  fd.append('file', file);
-  const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-  if (!res.ok) throw new Error('Upload failed');
-  return await res.json();
+// ---- Upload helper with progress ----
+function showUploadProgress() {
+  let bar = document.getElementById('uploadProgressBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'uploadProgressBar';
+    bar.innerHTML = '<div class="upload-progress-fill"></div><span class="upload-progress-text">0%</span>';
+    document.body.appendChild(bar);
+  }
+  bar.classList.add('active');
+  bar.querySelector('.upload-progress-fill').style.width = '0%';
+  bar.querySelector('.upload-progress-text').textContent = '0%';
+  return bar;
+}
+
+function updateUploadProgress(bar, pct) {
+  bar.querySelector('.upload-progress-fill').style.width = pct + '%';
+  bar.querySelector('.upload-progress-text').textContent = Math.round(pct) + '%';
+}
+
+function hideUploadProgress(bar) {
+  bar.querySelector('.upload-progress-fill').style.width = '100%';
+  bar.querySelector('.upload-progress-text').textContent = '100%';
+  setTimeout(() => bar.classList.remove('active'), 600);
+}
+
+function inlineUploadFile(file) {
+  return new Promise((resolve, reject) => {
+    const bar = showUploadProgress();
+    const fd = new FormData();
+    fd.append('file', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/admin/upload');
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) updateUploadProgress(bar, (e.loaded / e.total) * 100);
+    };
+    xhr.onload = () => {
+      hideUploadProgress(bar);
+      if (xhr.status === 200) {
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        reject(new Error('Upload failed'));
+      }
+    };
+    xhr.onerror = () => { hideUploadProgress(bar); reject(new Error('Upload failed')); };
+    xhr.send(fd);
+  });
 }
 
 // ---- Edit modal core ----
@@ -1319,3 +1372,66 @@ async function reloadAndRender() {
   applyTranslations();
   refreshCursorTargets();
 }
+
+// ===== EDIT SHOWREEL =====
+async function openEditShowreel() {
+  let currentUrl = document.getElementById('showreelVideo')?.src || '';
+
+  const html = `
+    <div class="edit-panel-header">
+      <div class="edit-panel-title">Change Showreel</div>
+      <button class="edit-panel-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="edit-field">
+      <label>Video URL</label>
+      <input id="es-url" value="${escHtml(currentUrl)}" placeholder="/Videos/showreel.mp4">
+    </div>
+    <div class="edit-field">
+      <label>Or upload video</label>
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:1px solid var(--border);cursor:pointer;color:var(--dim);font-size:13px;transition:border-color 0.2s,color 0.2s">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Video
+        <input type="file" accept="video/*" style="display:none" onchange="inlineUploadShowreel(this)">
+      </label>
+      <div id="es-preview" style="margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);max-height:300px">
+        ${currentUrl ? '<video src="' + currentUrl + '" controls muted style="width:100%;display:block;max-height:300px"></video>' : '<div style="padding:24px;text-align:center;color:var(--dim)">No video</div>'}
+      </div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn-save" onclick="saveEditShowreel()">Save</button>
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+    </div>
+  `;
+
+  openEditModal(html);
+}
+window.openEditShowreel = openEditShowreel;
+
+async function inlineUploadShowreel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const result = await inlineUploadFile(file);
+    document.getElementById('es-url').value = result.url;
+    document.getElementById('es-preview').innerHTML = '<video src="' + result.url + '" controls muted style="width:100%;display:block;max-height:300px"></video>';
+  } catch { showToast('Upload failed'); }
+}
+window.inlineUploadShowreel = inlineUploadShowreel;
+
+async function saveEditShowreel() {
+  const url = document.getElementById('es-url').value.trim();
+  try {
+    const res = await fetch('/api/admin/settings/showreel_url', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: url })
+    });
+    if (res.ok) {
+      const vid = document.getElementById('showreelVideo');
+      if (vid) vid.src = url;
+      closeEditModal();
+      showToast('Showreel updated');
+    } else { showToast('Failed to save'); }
+  } catch { showToast('Server error'); }
+}
+window.saveEditShowreel = saveEditShowreel;
