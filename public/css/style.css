@@ -1445,9 +1445,11 @@ nav.scrolled {
   margin: 0 auto 48px; line-height: 1.7;
 }
 
+.cta-contact-wrap {
+  max-width: 420px; margin: 0 auto;
+}
 .cta-form {
   display: flex; gap: 8px;
-  max-width: 420px; margin: 0 auto;
 }
 
 .cta-input {
@@ -1480,7 +1482,7 @@ nav.scrolled {
 /* CTA social buttons */
 .cta-socials {
   display: flex; gap: 8px;
-  max-width: 420px; margin: 16px auto 0;
+  margin-top: 16px;
 }
 .cta-social-btn {
   flex: 1;
