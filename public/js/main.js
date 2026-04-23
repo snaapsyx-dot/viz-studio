@@ -488,7 +488,7 @@ function renderWorksSection(section, grid) {
         ? `<img src="${ttThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'tiktok')">${ttBadge}`
         : `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>${ttBadge}`;
     } else if (isVideo) {
-      thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline></video>`;
+      thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline preload="auto" class="grid-video"></video>`;
     } else {
       thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'image')">`;
     }
@@ -544,6 +544,17 @@ function renderWorksSection(section, grid) {
     `);
     initWorksDragDrop(grid);
   }
+
+  // Ensure videos play when scrolled into view (mobile fix)
+  grid.querySelectorAll('.grid-video').forEach(vid => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { vid.play().catch(() => {}); }
+        else { vid.pause(); }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(vid);
+  });
 
   grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
   refreshCursorTargets();
