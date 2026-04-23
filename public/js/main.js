@@ -434,23 +434,38 @@ window.playTikTok = playTikTok;
 const YT_FALLBACK_SVG = `<svg viewBox="0 0 68 48" width="48" height="34"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="#fff"/><path d="M45 24L27 14v20" fill="#cc0000"/></svg>`;
 const TT_FALLBACK_SVG = `<svg viewBox="0 0 48 48" width="40" height="40" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>`;
 
+const VIDEO_FALLBACK_SVG = `<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><polygon points="5,3 19,12 5,21" fill="rgba(255,255,255,0.3)" stroke="none"/></svg>`;
+
 function handleThumbError(img, type) {
   const parent = img.parentElement;
   if (!parent) return;
   if (type === 'youtube') {
-    // Try sddefault fallback first, then placeholder
     if (img.src.includes('maxresdefault')) {
       img.src = img.src.replace('maxresdefault', 'sddefault');
+      return;
+    }
+    if (img.src.includes('sddefault')) {
+      img.src = img.src.replace('sddefault', 'hqdefault');
       return;
     }
     parent.innerHTML = `<div class="thumb-fallback thumb-fallback-yt">${YT_FALLBACK_SVG}</div>`;
   } else if (type === 'tiktok') {
     parent.innerHTML = `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>`;
+  } else if (type === 'video') {
+    parent.innerHTML = `<div class="thumb-fallback">${VIDEO_FALLBACK_SVG}</div>`;
   } else {
     parent.innerHTML = `<div class="thumb-fallback"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
   }
 }
 window.handleThumbError = handleThumbError;
+
+function handleVideoError(vid) {
+  const parent = vid.parentElement;
+  if (!parent) return;
+  vid.remove();
+  parent.insertAdjacentHTML('afterbegin', `<div class="thumb-fallback">${VIDEO_FALLBACK_SVG}</div>`);
+}
+window.handleVideoError = handleVideoError;
 
 // ===== RENDER WORKS (two sections) =====
 function renderWorks() {
@@ -480,7 +495,7 @@ function renderWorksSection(section, grid) {
       const ytThumb = firstMedia.thumb || getYouTubeThumb(firstMedia.src);
       const isThumbVid = firstMedia.thumb && /\.(mp4|webm|mov)$/i.test(firstMedia.thumb);
       thumbHTML = isThumbVid
-        ? `<video src="${firstMedia.thumb}" autoplay muted loop playsinline></video>${ytBadge}`
+        ? `<video src="${firstMedia.thumb}" autoplay muted loop playsinline onerror="handleVideoError(this)"></video>${ytBadge}`
         : `<img src="${ytThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'youtube')">${ytBadge}`;
     } else if (isTT) {
       const ttThumb = firstMedia.thumb || '';
@@ -490,11 +505,11 @@ function renderWorksSection(section, grid) {
     } else if (isVideo) {
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
-        // Mobile: paused video with first frame, no autoplay
-        thumbHTML = `<video src="${firstMedia.src}" muted playsinline preload="metadata" class="grid-video-static"></video>
+        // Mobile: poster image from video, fallback to play icon
+        thumbHTML = `<video src="${firstMedia.src}" muted playsinline preload="metadata" class="grid-video-static" onerror="handleVideoError(this)"></video>
           <div class="grid-play-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>`;
       } else {
-        thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline preload="auto"></video>`;
+        thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline preload="auto" onerror="handleVideoError(this)"></video>`;
       }
     } else {
       thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'image')">`;
@@ -552,9 +567,19 @@ function renderWorksSection(section, grid) {
     initWorksDragDrop(grid);
   }
 
-  // Mobile: seek to 0.5s to show first frame as poster
+  // Mobile: seek to show first frame, fallback if stuck
   grid.querySelectorAll('.grid-video-static').forEach(vid => {
-    vid.addEventListener('loadedmetadata', () => { vid.currentTime = 0.5; }, { once: true });
+    let loaded = false;
+    vid.addEventListener('loadeddata', () => {
+      loaded = true;
+      vid.currentTime = 0.5;
+    }, { once: true });
+    // If video doesn't load in 4s, show fallback
+    setTimeout(() => {
+      if (!loaded && vid.readyState < 2) {
+        handleVideoError(vid);
+      }
+    }, 4000);
   });
 
   grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
