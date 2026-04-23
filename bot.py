@@ -37,7 +37,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_html(
             "Привет! 👋\n\n"
             "Я бот <b>Leywin</b> — студии 3D-визуализации.\n\n"
-            '🌐 <a href="http://193.124.67.245:4000">Наш сайт</a>\n\n'
+            '🌐 <a href="https://leywin.art/">Наш сайт</a>\n\n'
             "Хотите связаться с нами? Просто напишите сообщение, "
             "и мы ответим в ближайшее время."
         )
@@ -52,7 +52,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "/help — помощь\n\n"
             "Заявки с сайта приходят автоматически.\n"
             "Чтобы ответить — реплайните на сообщение.\n\n"
-            '🌐 <a href="http://193.124.67.245:4000">Сайт Leywin</a>'
+            '🌐 <a href="https://leywin.art/">Сайт Leywin</a>'
         )
     else:
         await update.message.reply_text(
@@ -124,7 +124,7 @@ class NotifyHandler(BaseHTTPRequestHandler):
                 text = (
                     f"📧 <b>Новая заявка с сайта</b>\n\n"
                     f"Email: <code>{email}</code>\n\n"
-                    f'Клиент оставил email для связи на <a href="http://193.124.67.245:4000">Leywin</a>'
+                    f'Клиент оставил email для связи на <a href="https://leywin.art/">Leywin</a>'
                 )
                 bot = Bot(
                     token=BOT_TOKEN,
