@@ -655,9 +655,10 @@ nav:not(.scrolled) {
 
 /* ===== WORKS ===== */
 .works-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: minmax(280px, auto);
-  gap: 16px; max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 260px;
+  gap: 14px; max-width: 1400px; margin: 0 auto;
+  padding: 0 24px;
 }
 
 .work-card {
@@ -666,6 +667,7 @@ nav:not(.scrolled) {
   overflow: hidden; cursor: none;
   border: 1px solid var(--border);
   transition: border-color 0.3s, transform 0.5s var(--ease), opacity 0.2s;
+  height: 100%;
 }
 
 .work-card.dragging { opacity: 0.4; }
@@ -673,13 +675,42 @@ nav:not(.scrolled) {
 .work-card[draggable] { cursor: grab; }
 .work-card[draggable]:active { cursor: grabbing; }
 
-/* Layout variants: wide spans full width, tall spans 2 rows */
-.work-card.layout-wide { grid-column: 1 / -1; }
-.work-card.layout-wide .work-thumb { max-height: 560px; }
-.work-card.layout-tall { grid-row: span 2; }
-.work-card.layout-tall .work-thumb { max-height: none; height: 100%; }
-.work-card.layout-tall .work-thumb img,
-.work-card.layout-tall .work-thumb video { height: 100%; object-fit: cover; }
+/* Layout variants: col x row spans */
+.work-card.layout-2x1 { grid-column: span 2; }
+.work-card.layout-3x1 { grid-column: 1 / -1; }
+.work-card.layout-1x2 { grid-row: span 2; }
+.work-card.layout-2x2 { grid-column: span 2; grid-row: span 2; }
+/* All cards: thumb fills entire card */
+
+/* ===== CARD RESIZE CONTROLS (admin) ===== */
+.card-resize-bar {
+  position: absolute; bottom: 6px; right: 6px;
+  display: flex; gap: 3px; z-index: 10;
+  opacity: 0; transition: opacity 0.2s;
+  pointer-events: none;
+}
+.work-card:hover .card-resize-bar { opacity: 1; pointer-events: auto; }
+.card-resize-btn {
+  width: 28px; height: 28px;
+  background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; color: #fff; font-size: 10px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px); transition: background 0.15s, border-color 0.15s;
+}
+.card-resize-btn:hover { background: rgba(79,125,245,0.5); border-color: var(--accent); }
+.card-resize-btn.active { background: var(--accent); border-color: var(--accent); }
+
+/* Drag resize handle */
+.card-resize-handle {
+  position: absolute; bottom: 0; right: 0;
+  width: 24px; height: 24px; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  cursor: nwse-resize; color: rgba(255,255,255,0.5);
+  opacity: 0; transition: opacity 0.2s;
+  background: rgba(0,0,0,0.4); border-radius: var(--r) 0 var(--r-lg) 0;
+}
+.work-card:hover .card-resize-handle { opacity: 1; }
+.card-resize-handle:hover { color: var(--accent); }
 
 .work-card:hover {
   border-color: var(--border-h);
@@ -687,8 +718,7 @@ nav:not(.scrolled) {
 }
 
 .work-thumb {
-  width: 100%; position: relative;
-  max-height: 500px;
+  width: 100%; height: 100%; position: relative;
   overflow: hidden;
 }
 
@@ -1567,11 +1597,10 @@ footer {
   .sp-icon { margin: 0 0 12px 0; }
   .sp-desc { max-width: none; }
   .process-grid { grid-template-columns: 1fr 1fr; }
-  .works-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: minmax(180px, auto); gap: 10px; }
-  .work-card.layout-wide { grid-column: 1 / -1; }
-  .work-card.layout-tall { grid-row: span 2; }
-  .work-thumb { max-height: 280px; }
-  .work-card.layout-wide .work-thumb { max-height: 280px; }
+  .works-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 180px; gap: 10px; padding: 0 16px; }
+  .work-card.layout-2x1,
+  .work-card.layout-3x1 { grid-column: 1 / -1; }
+  .work-card.layout-2x2 { grid-column: 1 / -1; grid-row: span 2; }
   .work-meta { padding: 10px 14px; }
   .work-name { font-size: 14px; }
   .work-tag { font-size: 10px; }
@@ -2251,15 +2280,36 @@ footer {
   z-index: 3;
 }
 
-/* ===== TIKTOK EMBED ===== */
-.tt-embed-wrap {
-  position: relative; width: 100%; height: 0; padding-bottom: 177%; /* 9:16 aspect */
+/* ===== TIKTOK MODAL PLAYER ===== */
+.tt-modal-wrap {
+  position: relative; width: 100%; height: 100%;
   background: #000; border-radius: var(--r);
-  overflow: hidden;
+  overflow: hidden; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
-.tt-embed-wrap iframe {
-  position: absolute; top: 0; left: 0;
+.tt-modal-wrap img { transition: transform 0.4s var(--ease); }
+.tt-modal-wrap:hover img { transform: scale(1.03); }
+.tt-modal-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  background: rgba(0,0,0,0.35);
+  transition: background 0.3s;
+}
+.tt-modal-wrap:hover .tt-modal-overlay { background: rgba(0,0,0,0.5); }
+.tt-modal-label {
+  color: #fff; font-size: 14px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  opacity: 0.9;
+}
+/* Playing state — iframe loaded */
+.tt-modal-wrap.tt-playing {
+  cursor: default;
+  max-width: 380px; margin: 0 auto;
+}
+.tt-modal-wrap.tt-playing iframe {
   width: 100%; height: 100%; border: none;
+  min-height: 680px;
 }
 
 /* ===== TIKTOK BUTTON IN EDIT ===== */
@@ -2268,11 +2318,6 @@ footer {
   border-color: rgba(255,255,255,0.15) !important;
 }
 .edit-media-tt:hover { border-color: rgba(255,255,255,0.3) !important; }
-
-/* ===== GRID VIDEO HOVER PLAY ===== */
-.grid-video {
-  transition: opacity 0.3s;
-}
 
 /* ===== PREFERS REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
@@ -2291,11 +2336,10 @@ footer {
 
 /* ===== MOBILE 480px ===== */
 @media (max-width: 480px) {
-  .works-grid { grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-rows: minmax(140px, auto); }
-  .work-card.layout-wide { grid-column: 1 / -1; }
-  .work-card.layout-tall { grid-row: span 2; }
-  .work-thumb { max-height: 200px; }
-  .work-card.layout-wide .work-thumb { max-height: 200px; }
+  .works-grid { grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-rows: 140px; padding: 0 10px; }
+  .work-card.layout-2x1,
+  .work-card.layout-3x1 { grid-column: 1 / -1; }
+  .work-card.layout-2x2 { grid-column: 1 / -1; grid-row: span 2; }
   .work-meta { padding: 8px 10px; gap: 2px; }
   .work-name { font-size: 12px; }
   .work-tag { font-size: 9px; }

@@ -423,11 +423,12 @@ function getTikTokId(url) {
   return m ? m[1] : null;
 }
 
-function getTikTokEmbed(url) {
-  const id = getTikTokId(url);
-  if (!id) return '';
-  return `https://www.tiktok.com/embed/v2/${id}`;
+function playTikTok(wrap, id) {
+  wrap.onclick = null;
+  wrap.innerHTML = `<iframe src="https://www.tiktok.com/embed/v2/${id}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  wrap.classList.add('tt-playing');
 }
+window.playTikTok = playTikTok;
 
 // ===== FALLBACK THUMBNAILS =====
 const YT_FALLBACK_SVG = `<svg viewBox="0 0 68 48" width="48" height="34"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="#fff"/><path d="M45 24L27 14v20" fill="#cc0000"/></svg>`;
@@ -473,7 +474,7 @@ function renderWorksSection(section, grid) {
     const isYT = firstMedia.type === 'youtube';
     const isTT = firstMedia.type === 'tiktok';
     const isVideo = firstMedia.type === 'video';
-    const layout = p.layout || 'normal';
+    const layout = p.layout || '1x1';
     let thumbHTML;
     if (isYT) {
       const ytThumb = firstMedia.thumb || getYouTubeThumb(firstMedia.src);
@@ -487,8 +488,7 @@ function renderWorksSection(section, grid) {
         ? `<img src="${ttThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'tiktok')">${ttBadge}`
         : `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>${ttBadge}`;
     } else if (isVideo) {
-      // Use poster frame instead of autoplay for performance
-      thumbHTML = `<video src="${firstMedia.src}" muted loop playsinline preload="metadata" class="grid-video"></video>`;
+      thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline></video>`;
     } else {
       thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'image')">`;
     }
@@ -497,13 +497,26 @@ function renderWorksSection(section, grid) {
       ? `<button class="inline-edit-btn" onclick="event.stopPropagation(); openEditProject(${p.id})" title="Edit">${pencilSVG}</button>`
       : '';
 
+    const resizeBar = isAdmin ? `
+      <div class="card-resize-bar" onclick="event.stopPropagation()">
+        <button class="card-resize-btn ${layout==='1x1'?'active':''}" onclick="resizeCard(${p.id},'1x1')" title="1×1"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="1" width="14" height="14" rx="2" fill="currentColor"/></svg></button>
+        <button class="card-resize-btn ${layout==='2x1'?'active':''}" onclick="resizeCard(${p.id},'2x1')" title="2×1"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="3" width="6" height="10" rx="1.5" fill="currentColor"/><rect x="9" y="3" width="6" height="10" rx="1.5" fill="currentColor" opacity="0.4"/></svg></button>
+        <button class="card-resize-btn ${layout==='1x2'?'active':''}" onclick="resizeCard(${p.id},'1x2')" title="1×2"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="3" y="1" width="10" height="6" rx="1.5" fill="currentColor"/><rect x="3" y="9" width="10" height="6" rx="1.5" fill="currentColor" opacity="0.4"/></svg></button>
+        <button class="card-resize-btn ${layout==='2x2'?'active':''}" onclick="resizeCard(${p.id},'2x2')" title="2×2"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/></svg></button>
+        <button class="card-resize-btn ${layout==='3x1'?'active':''}" onclick="resizeCard(${p.id},'3x1')" title="3×1"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="4" width="4" height="8" rx="1" fill="currentColor"/><rect x="6" y="4" width="4" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="11" y="4" width="4" height="8" rx="1" fill="currentColor" opacity="0.4"/></svg></button>
+      </div>
+      <div class="card-resize-handle" onmousedown="event.stopPropagation(); startCardResize(event, ${p.id})" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M14 16L16 14V16H14ZM8 16L16 8V10L10 16H8ZM2 16L16 2V4L4 16H2Z" opacity="0.6"/></svg>
+      </div>` : '';
+
     const dragAttr = isAdmin ? `draggable="true" data-project-id="${p.id}" data-sort="${p.sort_order}"` : '';
 
-    const layoutClass = layout !== 'normal' ? ` layout-${layout}` : '';
+    const layoutClass = layout !== '1x1' ? ` layout-${layout}` : '';
 
     return `
       <div class="work-card${layoutClass} reveal ${i > 0 ? 'r-d' + Math.min(i, 4) : ''}" ${dragAttr} onclick="openProject(${globalIdx})">
         ${editBtn}
+        ${resizeBar}
         <div class="work-thumb">
           ${thumbHTML}
           <div class="work-gradient"></div>
@@ -531,14 +544,6 @@ function renderWorksSection(section, grid) {
     `);
     initWorksDragDrop(grid);
   }
-
-  // Hover-play for grid videos (performance optimization — no autoplay)
-  grid.querySelectorAll('.grid-video').forEach(vid => {
-    const card = vid.closest('.work-card');
-    if (!card) return;
-    card.addEventListener('mouseenter', () => { vid.play().catch(() => {}); });
-    card.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
-  });
 
   grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
   refreshCursorTargets();
@@ -596,6 +601,89 @@ function initWorksDragDrop(grid) {
     });
   });
 }
+
+// ===== CARD RESIZE (admin) =====
+async function resizeCard(projectId, layout) {
+  try {
+    const p = projectsData.find(x => x.id === projectId);
+    if (!p) return;
+    p.layout = layout;
+    await fetch(`/api/admin/projects/${projectId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(p)
+    });
+    renderWorks();
+  } catch (e) { showToast('Resize failed'); }
+}
+window.resizeCard = resizeCard;
+
+// ===== DRAG RESIZE CARD =====
+function startCardResize(e, projectId) {
+  e.preventDefault();
+  const card = e.target.closest('.work-card');
+  const grid = card.closest('.works-grid');
+  if (!card || !grid) return;
+
+  const gridRect = grid.getBoundingClientRect();
+  const gridStyles = getComputedStyle(grid);
+  const cols = gridStyles.gridTemplateColumns.split(' ').length;
+  const gap = parseFloat(gridStyles.gap) || 14;
+  const colW = (gridRect.width - gap * (cols - 1)) / cols;
+  const rowH = parseFloat(gridStyles.gridAutoRows) || 260;
+
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const startW = card.offsetWidth;
+  const startH = card.offsetHeight;
+
+  card.style.zIndex = '20';
+  card.style.outline = '2px solid var(--accent)';
+  card.style.outlineOffset = '-2px';
+  document.body.style.cursor = 'nwse-resize';
+  document.body.style.userSelect = 'none';
+
+  const validLayouts = ['1x1','2x1','1x2','2x2','3x1'];
+
+  function snapLayout(spanCols, spanRows) {
+    const candidate = `${Math.max(1, Math.min(3, spanCols))}x${Math.max(1, Math.min(2, spanRows))}`;
+    return validLayouts.includes(candidate) ? candidate : '1x1';
+  }
+
+  function onMove(ev) {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    const newW = startW + dx;
+    const newH = startH + dy;
+
+    const spanCols = Math.round(newW / (colW + gap));
+    const spanRows = Math.round(newH / (rowH + gap));
+    const newLayout = snapLayout(spanCols, spanRows);
+
+    card.dataset.previewLayout = newLayout;
+    card.className = card.className.replace(/ ?layout-\S+/g, '');
+    if (newLayout !== '1x1') card.classList.add(`layout-${newLayout}`);
+  }
+
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    card.style.zIndex = '';
+    card.style.outline = '';
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    const finalLayout = card.dataset.previewLayout || '1x1';
+    delete card.dataset.previewLayout;
+
+    const layout = validLayouts.includes(finalLayout) ? finalLayout : '1x1';
+    resizeCard(projectId, layout);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+window.startCardResize = startCardResize;
 
 // ===== LOADER =====
 function finishLoader() {
@@ -846,7 +934,18 @@ function renderProjectMedia(container, project, index) {
   if (isYT) {
     mediaHTML = `<div class="yt-embed-wrap"><iframe src="${getYouTubeEmbed(m.src, m.start, m.end)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
   } else if (isTT) {
-    mediaHTML = `<div class="tt-embed-wrap"><iframe src="${getTikTokEmbed(m.src)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:none"></iframe></div>`;
+    const ttId = getTikTokId(m.src);
+    const ttThumb = m.thumb || '';
+    const ttThumbHTML = ttThumb
+      ? `<img src="${ttThumb}" alt="" style="width:100%;height:100%;object-fit:cover">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">${TT_FALLBACK_SVG}</div>`;
+    mediaHTML = `<div class="tt-modal-wrap" id="tt-modal-player" onclick="event.stopPropagation(); playTikTok(this, '${ttId}')">
+      ${ttThumbHTML}
+      <div class="tt-modal-overlay">
+        <svg viewBox="0 0 48 48" width="56" height="56" fill="#fff" style="filter:drop-shadow(0 2px 12px rgba(0,0,0,0.5))"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>
+        <span class="tt-modal-label">Play</span>
+      </div>
+    </div>`;
   } else if (isVideo) {
     mediaHTML = `<video src="${m.src}" playsinline preload="auto"></video>`;
   } else {
@@ -1366,7 +1465,7 @@ function escHtml(str) {
 function openEditProject(id, defaultSection) {
   const p = id ? projectsData.find(x => x.id === id) : null;
   const isNew = !p;
-  const data = p || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: defaultSection || 'author', layout: 'normal' };
+  const data = p || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: defaultSection || 'author', layout: '1x1' };
 
   const tagsChips = (data.tags || []).map(t =>
     `<span class="edit-tag-chip">${escHtml(t)} <button onclick="this.parentElement.remove()">&times;</button></span>`
@@ -1438,9 +1537,11 @@ function openEditProject(id, defaultSection) {
       <div class="edit-field">
         <label>Layout</label>
         <select id="ep-layout" class="edit-select">
-          <option value="normal" ${(data.layout || 'normal') === 'normal' ? 'selected' : ''}>Normal</option>
-          <option value="wide" ${data.layout === 'wide' ? 'selected' : ''}>Wide (horizontal)</option>
-          <option value="tall" ${data.layout === 'tall' ? 'selected' : ''}>Tall (vertical)</option>
+          <option value="1x1" ${(data.layout || '1x1') === '1x1' ? 'selected' : ''}>1×1 Normal</option>
+          <option value="2x1" ${data.layout === '2x1' ? 'selected' : ''}>2×1 Wide</option>
+          <option value="1x2" ${data.layout === '1x2' ? 'selected' : ''}>1×2 Tall</option>
+          <option value="2x2" ${data.layout === '2x2' ? 'selected' : ''}>2×2 Large</option>
+          <option value="3x1" ${data.layout === '3x1' ? 'selected' : ''}>3×1 Full width</option>
         </select>
       </div>
     </div>

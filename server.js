@@ -126,8 +126,8 @@ async function initDB() {
 
   // Migrate: add section column if missing
   try { db.run("ALTER TABLE projects ADD COLUMN section TEXT DEFAULT 'author'"); } catch (e) { /* already exists */ }
-  // Migrate: add layout column if missing (wide / tall / normal)
-  try { db.run("ALTER TABLE projects ADD COLUMN layout TEXT DEFAULT 'normal'"); } catch (e) { /* already exists */ }
+  // Migrate: add layout column if missing (1x1 / 2x1 / 1x2 / 2x2 / 3x1)
+  try { db.run("ALTER TABLE projects ADD COLUMN layout TEXT DEFAULT '1x1'"); } catch (e) { /* already exists */ }
 
   db.run(`CREATE TABLE IF NOT EXISTS clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -298,7 +298,7 @@ app.post('/api/admin/projects', requireAdmin, (req, res) => {
     const { name, category, year, description, duration, tags, media, sort_order, section, layout } = req.body;
     dbRun(
       "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section, layout) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || 'normal']
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || '1x1']
     );
     res.json({ success: true, id: db.exec("SELECT last_insert_rowid()")[0].values[0][0] });
   } catch (e) {
@@ -312,7 +312,7 @@ app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
     const { name, category, year, description, duration, tags, media, sort_order, section, layout } = req.body;
     dbRun(
       "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=?, layout=? WHERE id=?",
-      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || 'normal', req.params.id]
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || '1x1', req.params.id]
     );
     res.json({ success: true });
   } catch (e) {

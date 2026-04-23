@@ -111,7 +111,7 @@ function showProjectForm(project = null) {
   list.style.display = 'none';
   form.style.display = '';
 
-  const p = project || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: 'author', layout: 'normal' };
+  const p = project || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: 'author', layout: '1x1' };
   const isEdit = !!project;
 
   const tagsChips = (p.tags || []).map(t =>
@@ -145,9 +145,11 @@ function showProjectForm(project = null) {
       <div class="form-group">
         <label class="form-label">Layout</label>
         <select class="form-input" id="pf-layout">
-          <option value="normal" ${(p.layout || 'normal') === 'normal' ? 'selected' : ''}>Normal</option>
-          <option value="wide" ${p.layout === 'wide' ? 'selected' : ''}>Wide (horizontal)</option>
-          <option value="tall" ${p.layout === 'tall' ? 'selected' : ''}>Tall (vertical)</option>
+          <option value="1x1" ${(p.layout || '1x1') === '1x1' ? 'selected' : ''}>1×1 Normal</option>
+          <option value="2x1" ${p.layout === '2x1' ? 'selected' : ''}>2×1 Wide</option>
+          <option value="1x2" ${p.layout === '1x2' ? 'selected' : ''}>1×2 Tall</option>
+          <option value="2x2" ${p.layout === '2x2' ? 'selected' : ''}>2×2 Large</option>
+          <option value="3x1" ${p.layout === '3x1' ? 'selected' : ''}>3×1 Full width</option>
         </select>
       </div>
       <div class="form-group">
