@@ -126,6 +126,8 @@ async function initDB() {
 
   // Migrate: add section column if missing
   try { db.run("ALTER TABLE projects ADD COLUMN section TEXT DEFAULT 'author'"); } catch (e) { /* already exists */ }
+  // Migrate: add layout column if missing (wide / tall / normal)
+  try { db.run("ALTER TABLE projects ADD COLUMN layout TEXT DEFAULT 'normal'"); } catch (e) { /* already exists */ }
 
   db.run(`CREATE TABLE IF NOT EXISTS clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -293,10 +295,10 @@ app.get('/api/clients', (req, res) => {
 // ===== ADMIN API: PROJECTS =====
 app.post('/api/admin/projects', requireAdmin, (req, res) => {
   try {
-    const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
+    const { name, category, year, description, duration, tags, media, sort_order, section, layout } = req.body;
     dbRun(
-      "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author']
+      "INSERT INTO projects (name, category, year, description, duration, tags, media, sort_order, section, layout) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || 'normal']
     );
     res.json({ success: true, id: db.exec("SELECT last_insert_rowid()")[0].values[0][0] });
   } catch (e) {
@@ -307,10 +309,10 @@ app.post('/api/admin/projects', requireAdmin, (req, res) => {
 
 app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
   try {
-    const { name, category, year, description, duration, tags, media, sort_order, section } = req.body;
+    const { name, category, year, description, duration, tags, media, sort_order, section, layout } = req.body;
     dbRun(
-      "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=? WHERE id=?",
-      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', req.params.id]
+      "UPDATE projects SET name=?, category=?, year=?, description=?, duration=?, tags=?, media=?, sort_order=?, section=?, layout=? WHERE id=?",
+      [name, category || '', year || '', description || '', duration || '', JSON.stringify(tags || []), JSON.stringify(media || []), sort_order || 0, section || 'author', layout || 'normal', req.params.id]
     );
     res.json({ success: true });
   } catch (e) {
@@ -430,6 +432,28 @@ app.post('/api/bot/contacts/mark', (req, res) => {
     dbRun(`UPDATE contacts SET notified = 1 WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
   }
   res.json({ success: true });
+});
+
+// ===== TIKTOK OEMBED PROXY =====
+app.get('/api/tiktok/oembed', async (req, res) => {
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: 'Missing url' });
+  try {
+    const https = require('https');
+    const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+    const data = await new Promise((resolve, reject) => {
+      https.get(oembedUrl, resp => {
+        let body = '';
+        resp.on('data', chunk => body += chunk);
+        resp.on('end', () => {
+          try { resolve(JSON.parse(body)); } catch { reject(new Error('Invalid JSON')); }
+        });
+      }).on('error', reject);
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch TikTok data' });
+  }
 });
 
 // ===== ADMIN PAGE =====

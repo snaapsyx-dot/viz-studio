@@ -400,9 +400,11 @@ function getYouTubeId(url) {
   return m ? m[1] : null;
 }
 
-function getYouTubeThumb(url) {
+function getYouTubeThumb(url, quality) {
   const id = getYouTubeId(url);
-  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+  if (!id) return '';
+  const q = quality || 'maxresdefault';
+  return `https://img.youtube.com/vi/${id}/${q}.jpg`;
 }
 
 function getYouTubeEmbed(url, start, end) {
@@ -413,6 +415,41 @@ function getYouTubeEmbed(url, start, end) {
   if (end) params += `&end=${end}`;
   return `https://www.youtube.com/embed/${id}?${params}`;
 }
+
+// ===== TIKTOK HELPERS =====
+function getTikTokId(url) {
+  if (!url) return null;
+  const m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+function getTikTokEmbed(url) {
+  const id = getTikTokId(url);
+  if (!id) return '';
+  return `https://www.tiktok.com/embed/v2/${id}`;
+}
+
+// ===== FALLBACK THUMBNAILS =====
+const YT_FALLBACK_SVG = `<svg viewBox="0 0 68 48" width="48" height="34"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="#fff"/><path d="M45 24L27 14v20" fill="#cc0000"/></svg>`;
+const TT_FALLBACK_SVG = `<svg viewBox="0 0 48 48" width="40" height="40" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>`;
+
+function handleThumbError(img, type) {
+  const parent = img.parentElement;
+  if (!parent) return;
+  if (type === 'youtube') {
+    // Try sddefault fallback first, then placeholder
+    if (img.src.includes('maxresdefault')) {
+      img.src = img.src.replace('maxresdefault', 'sddefault');
+      return;
+    }
+    parent.innerHTML = `<div class="thumb-fallback thumb-fallback-yt">${YT_FALLBACK_SVG}</div>`;
+  } else if (type === 'tiktok') {
+    parent.innerHTML = `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>`;
+  } else {
+    parent.innerHTML = `<div class="thumb-fallback"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+  }
+}
+window.handleThumbError = handleThumbError;
 
 // ===== RENDER WORKS (two sections) =====
 function renderWorks() {
@@ -427,22 +464,33 @@ function renderWorksSection(section, grid) {
 
   const pencilSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 
+  const ytBadge = `<div class="yt-play-badge"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="#fff"/></svg></div>`;
+  const ttBadge = `<div class="tt-play-badge"><svg viewBox="0 0 48 48" width="28" height="28" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg></div>`;
+
   grid.innerHTML = items.map((p, i) => {
     const globalIdx = projectsData.indexOf(p);
     const firstMedia = (p.media && p.media[0]) || {};
     const isYT = firstMedia.type === 'youtube';
+    const isTT = firstMedia.type === 'tiktok';
     const isVideo = firstMedia.type === 'video';
+    const layout = p.layout || 'normal';
     let thumbHTML;
     if (isYT) {
       const ytThumb = firstMedia.thumb || getYouTubeThumb(firstMedia.src);
-      const isThumbVid = firstMedia.thumb && (firstMedia.thumb.endsWith('.mp4') || firstMedia.thumb.endsWith('.webm') || firstMedia.thumb.endsWith('.mov'));
+      const isThumbVid = firstMedia.thumb && /\.(mp4|webm|mov)$/i.test(firstMedia.thumb);
       thumbHTML = isThumbVid
-        ? `<video src="${firstMedia.thumb}" autoplay muted loop playsinline></video><div class="yt-play-badge"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="#fff"/></svg></div>`
-        : `<img src="${ytThumb}" alt="${p.name}"><div class="yt-play-badge"><svg viewBox="0 0 68 48"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.64 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="red"/><path d="M45 24L27 14v20" fill="#fff"/></svg></div>`;
+        ? `<video src="${firstMedia.thumb}" autoplay muted loop playsinline></video>${ytBadge}`
+        : `<img src="${ytThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'youtube')">${ytBadge}`;
+    } else if (isTT) {
+      const ttThumb = firstMedia.thumb || '';
+      thumbHTML = ttThumb
+        ? `<img src="${ttThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'tiktok')">${ttBadge}`
+        : `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>${ttBadge}`;
     } else if (isVideo) {
-      thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline></video>`;
+      // Use poster frame instead of autoplay for performance
+      thumbHTML = `<video src="${firstMedia.src}" muted loop playsinline preload="metadata" class="grid-video"></video>`;
     } else {
-      thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}">`;
+      thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'image')">`;
     }
 
     const editBtn = isAdmin
@@ -451,8 +499,10 @@ function renderWorksSection(section, grid) {
 
     const dragAttr = isAdmin ? `draggable="true" data-project-id="${p.id}" data-sort="${p.sort_order}"` : '';
 
+    const layoutClass = layout !== 'normal' ? ` layout-${layout}` : '';
+
     return `
-      <div class="work-card ${i === 0 ? 'featured' : ''} reveal ${i > 0 ? 'r-d' + i : ''}" ${dragAttr} onclick="openProject(${globalIdx})">
+      <div class="work-card${layoutClass} reveal ${i > 0 ? 'r-d' + Math.min(i, 4) : ''}" ${dragAttr} onclick="openProject(${globalIdx})">
         ${editBtn}
         <div class="work-thumb">
           ${thumbHTML}
@@ -481,6 +531,14 @@ function renderWorksSection(section, grid) {
     `);
     initWorksDragDrop(grid);
   }
+
+  // Hover-play for grid videos (performance optimization — no autoplay)
+  grid.querySelectorAll('.grid-video').forEach(vid => {
+    const card = vid.closest('.work-card');
+    if (!card) return;
+    card.addEventListener('mouseenter', () => { vid.play().catch(() => {}); });
+    card.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
+  });
 
   grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
   refreshCursorTargets();
@@ -767,6 +825,7 @@ function renderProjectMedia(container, project, index) {
 
   const isVideo = m.type === 'video';
   const isYT = m.type === 'youtube';
+  const isTT = m.type === 'tiktok';
 
   const videoControlsHTML = isVideo ? `
     <div class="modal-video-controls">
@@ -786,6 +845,8 @@ function renderProjectMedia(container, project, index) {
   let mediaHTML;
   if (isYT) {
     mediaHTML = `<div class="yt-embed-wrap"><iframe src="${getYouTubeEmbed(m.src, m.start, m.end)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
+  } else if (isTT) {
+    mediaHTML = `<div class="tt-embed-wrap"><iframe src="${getTikTokEmbed(m.src)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:none"></iframe></div>`;
   } else if (isVideo) {
     mediaHTML = `<video src="${m.src}" playsinline preload="auto"></video>`;
   } else {
@@ -1305,7 +1366,7 @@ function escHtml(str) {
 function openEditProject(id, defaultSection) {
   const p = id ? projectsData.find(x => x.id === id) : null;
   const isNew = !p;
-  const data = p || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: defaultSection || 'author' };
+  const data = p || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: defaultSection || 'author', layout: 'normal' };
 
   const tagsChips = (data.tags || []).map(t =>
     `<span class="edit-tag-chip">${escHtml(t)} <button onclick="this.parentElement.remove()">&times;</button></span>`
@@ -1314,16 +1375,22 @@ function openEditProject(id, defaultSection) {
   const mediaItems = (data.media || []).map((m, i) => {
     const isVid = m.type === 'video';
     const isYT = m.type === 'youtube';
+    const isTT = m.type === 'tiktok';
     let preview;
     if (isYT) {
       const thumbSrc = m.thumb || getYouTubeThumb(m.src);
       preview = `<img src="${thumbSrc}" alt="YouTube"><div class="yt-badge">YT</div>`;
+    } else if (isTT) {
+      const thumbSrc = m.thumb || '';
+      preview = thumbSrc
+        ? `<img src="${thumbSrc}" alt="TikTok"><div class="tt-badge">TT</div>`
+        : `<div style="width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="20" height="20" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg></div><div class="tt-badge">TT</div>`;
     } else if (isVid) {
       preview = `<video src="${m.src}" muted></video>`;
     } else {
       preview = `<img src="${m.src}" alt="">`;
     }
-    const deleteAction = isYT ? '' : `deleteUploadedFile(this.parentElement.dataset.src);`;
+    const deleteAction = (isYT || isTT) ? '' : `deleteUploadedFile(this.parentElement.dataset.src);`;
     const startAttr = m.start ? ` data-start="${m.start}"` : '';
     const endAttr = m.end ? ` data-end="${m.end}"` : '';
     const thumbAttr = m.thumb ? ` data-thumb="${escHtml(m.thumb)}"` : '';
@@ -1369,6 +1436,16 @@ function openEditProject(id, defaultSection) {
         </select>
       </div>
       <div class="edit-field">
+        <label>Layout</label>
+        <select id="ep-layout" class="edit-select">
+          <option value="normal" ${(data.layout || 'normal') === 'normal' ? 'selected' : ''}>Normal</option>
+          <option value="wide" ${data.layout === 'wide' ? 'selected' : ''}>Wide (horizontal)</option>
+          <option value="tall" ${data.layout === 'tall' ? 'selected' : ''}>Tall (vertical)</option>
+        </select>
+      </div>
+    </div>
+    <div class="edit-field-row">
+      <div class="edit-field">
         <label>Sort Order</label>
         <input id="ep-sort" type="number" value="${data.sort_order || 0}">
       </div>
@@ -1396,6 +1473,10 @@ function openEditProject(id, defaultSection) {
         <button class="edit-media-add edit-media-yt" id="ep-media-yt" type="button" onclick="promptYouTubeUrl()">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
           YouTube
+        </button>
+        <button class="edit-media-add edit-media-tt" id="ep-media-tt" type="button" onclick="promptTikTokUrl()">
+          <svg viewBox="0 0 48 48" width="20" height="20" fill="currentColor"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>
+          TikTok
         </button>
       </div>
     </div>
@@ -1604,6 +1685,103 @@ function confirmYouTubeUrl() {
 }
 window.confirmYouTubeUrl = confirmYouTubeUrl;
 
+// ===== TIKTOK INLINE PANEL =====
+function promptTikTokUrl() {
+  let panel = document.getElementById('tt-url-panel');
+  if (panel) { panel.remove(); return; }
+
+  panel = document.createElement('div');
+  panel.id = 'tt-url-panel';
+  panel.className = 'yt-url-panel';
+  panel.innerHTML = `
+    <div class="yt-url-header">
+      <svg viewBox="0 0 48 48" width="18" height="18" fill="currentColor"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>
+      <span>Add TikTok Video</span>
+      <button class="yt-url-close" onclick="document.getElementById('tt-url-panel').remove()">&times;</button>
+    </div>
+    <input class="yt-url-input" id="tt-url-input" placeholder="https://tiktok.com/@user/video/123..." autofocus>
+    <div id="tt-url-preview" class="yt-url-preview"></div>
+    <div class="yt-url-thumb-row">
+      <label>Custom thumbnail (optional)</label>
+      <label class="yt-url-thumb-upload">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload image/video
+        <input type="file" accept="image/*,video/*" style="display:none" id="tt-thumb-file" onchange="handleTtThumbUpload(this)">
+      </label>
+      <div id="tt-thumb-preview" class="yt-thumb-preview"></div>
+      <input type="hidden" id="tt-thumb-url" value="">
+    </div>
+    <button class="yt-url-add-btn" onclick="confirmTikTokUrl()">Add Video</button>
+  `;
+
+  const mediaList = document.getElementById('ep-media-list');
+  mediaList.parentElement.appendChild(panel);
+
+  const inp = panel.querySelector('#tt-url-input');
+  inp.addEventListener('input', async () => {
+    const prev = document.getElementById('tt-url-preview');
+    const id = getTikTokId(inp.value);
+    if (id) {
+      try {
+        const res = await fetch('/api/tiktok/oembed?url=' + encodeURIComponent(inp.value));
+        const data = await res.json();
+        if (data.thumbnail_url) {
+          prev.innerHTML = `<img src="${data.thumbnail_url}" alt="Preview">`;
+          prev.classList.add('has-preview');
+          document.getElementById('tt-thumb-url').value = data.thumbnail_url;
+        }
+      } catch {
+        prev.innerHTML = '<span style="color:var(--dim);font-size:12px">Could not load preview</span>';
+      }
+    } else {
+      prev.innerHTML = '';
+      prev.classList.remove('has-preview');
+    }
+  });
+  setTimeout(() => inp.focus(), 50);
+}
+window.promptTikTokUrl = promptTikTokUrl;
+
+async function handleTtThumbUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const result = await inlineUploadFile(file);
+    document.getElementById('tt-thumb-url').value = result.url;
+    const prev = document.getElementById('tt-thumb-preview');
+    if (file.type.startsWith('video')) {
+      prev.innerHTML = `<video src="${result.url}" muted autoplay loop style="width:100%;border-radius:8px"></video>`;
+    } else {
+      prev.innerHTML = `<img src="${result.url}" style="width:100%;border-radius:8px">`;
+    }
+  } catch { showToast('Upload failed'); }
+}
+window.handleTtThumbUpload = handleTtThumbUpload;
+
+function confirmTikTokUrl() {
+  const url = document.getElementById('tt-url-input').value.trim();
+  const thumbUrl = document.getElementById('tt-thumb-url')?.value || '';
+  if (!url) return;
+  const ttId = getTikTokId(url);
+  if (!ttId) { showToast('Invalid TikTok URL'); return; }
+
+  const item = document.createElement('div');
+  item.className = 'edit-media-thumb';
+  item.dataset.src = url;
+  item.dataset.type = 'tiktok';
+  if (thumbUrl) item.dataset.thumb = thumbUrl;
+  const thumbPreview = thumbUrl
+    ? `<img src="${thumbUrl}" alt="TikTok">`
+    : `<div style="width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="20" height="20" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg></div>`;
+  item.innerHTML = `${thumbPreview}<div class="tt-badge">TT</div><button class="edit-media-remove" onclick="this.parentElement.remove()">&times;</button>`;
+  const addBtn = document.getElementById('ep-media-add');
+  addBtn.parentElement.insertBefore(item, addBtn);
+
+  document.getElementById('tt-url-panel').remove();
+  playSound('success');
+}
+window.confirmTikTokUrl = confirmTikTokUrl;
+
 async function saveEditProject(id) {
   const tags = [...document.querySelectorAll('#ep-tags-wrap .edit-tag-chip')].map(c => c.textContent.replace('×', '').trim());
   const media = [...document.querySelectorAll('#ep-media-list .edit-media-thumb')].map(el => {
@@ -1622,6 +1800,7 @@ async function saveEditProject(id) {
     duration: document.getElementById('ep-duration').value,
     sort_order: +document.getElementById('ep-sort').value || 0,
     section: document.getElementById('ep-section').value,
+    layout: document.getElementById('ep-layout').value,
     tags, media
   };
 

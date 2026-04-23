@@ -111,7 +111,7 @@ function showProjectForm(project = null) {
   list.style.display = 'none';
   form.style.display = '';
 
-  const p = project || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: 'author' };
+  const p = project || { name: '', category: '', year: '', description: '', duration: '', tags: [], media: [], sort_order: 0, section: 'author', layout: 'normal' };
   const isEdit = !!project;
 
   const tagsChips = (p.tags || []).map(t =>
@@ -140,6 +140,14 @@ function showProjectForm(project = null) {
         <select class="form-input" id="pf-section">
           <option value="author" ${(p.section || 'author') === 'author' ? 'selected' : ''}>Author Videos</option>
           <option value="commercial" ${(p.section || 'author') === 'commercial' ? 'selected' : ''}>Commercial Videos</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Layout</label>
+        <select class="form-input" id="pf-layout">
+          <option value="normal" ${(p.layout || 'normal') === 'normal' ? 'selected' : ''}>Normal</option>
+          <option value="wide" ${p.layout === 'wide' ? 'selected' : ''}>Wide (horizontal)</option>
+          <option value="tall" ${p.layout === 'tall' ? 'selected' : ''}>Tall (vertical)</option>
         </select>
       </div>
       <div class="form-group">
@@ -173,8 +181,12 @@ function showProjectForm(project = null) {
           <button class="media-add" type="button" id="pf-media-yt" onclick="toggleDashYtPanel()" style="font-size:12px;color:red;font-weight:700">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="red"><path d="M23.5 6.2c-.3-1-1-1.8-2-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.5.6c-1 .3-1.8 1-2 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8c.3 1 1 1.8 2 2.1 1.9.6 9.5.6 9.5.6s7.6 0 9.5-.6c1-.3 1.8-1 2-2.1.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5v-7l6.4 3.5-6.4 3.5z"/></svg>
           </button>
+          <button class="media-add" type="button" id="pf-media-tt" onclick="toggleDashTtPanel()" style="font-size:12px;color:#fff;font-weight:700;background:#000">
+            <svg viewBox="0 0 48 48" width="18" height="18" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>
+          </button>
         </div>
         <div id="pf-yt-panel" style="display:none"></div>
+        <div id="pf-tt-panel" style="display:none"></div>
       </div>
     </div>
     <div style="margin-top:24px;display:flex;gap:12px">
@@ -250,10 +262,16 @@ function closeDropdowns(e) {
 function mediaItemHTML(m, idx) {
   const isVideo = m.type === 'video';
   const isYT = m.type === 'youtube';
+  const isTT = m.type === 'tiktok';
   let preview;
   if (isYT) {
-    const thumb = m.thumb || `https://img.youtube.com/vi/${getYTId(m.src)}/hqdefault.jpg`;
+    const thumb = m.thumb || `https://img.youtube.com/vi/${getYTId(m.src)}/maxresdefault.jpg`;
     preview = `<img src="${thumb}" alt=""><div style="position:absolute;top:3px;left:3px;background:red;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">YT</div>`;
+  } else if (isTT) {
+    const thumb = m.thumb || '';
+    preview = thumb
+      ? `<img src="${thumb}" alt=""><div style="position:absolute;top:3px;left:3px;background:#000;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">TT</div>`
+      : `<div style="width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="20" height="20" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg></div><div style="position:absolute;top:3px;left:3px;background:#000;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">TT</div>`;
   } else if (isVideo) {
     preview = `<video src="${m.src}" muted></video>`;
   } else {
@@ -270,6 +288,12 @@ function mediaItemHTML(m, idx) {
 function getYTId(url) {
   if (!url) return '';
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+
+function getTTId(url) {
+  if (!url) return '';
+  const m = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
   return m ? m[1] : '';
 }
 
@@ -447,6 +471,7 @@ function getProjectFormData() {
     duration: document.getElementById('pf-duration').value,
     sort_order: +document.getElementById('pf-sort').value || 0,
     section: document.getElementById('pf-section').value,
+    layout: document.getElementById('pf-layout').value,
     tags,
     media
   };
@@ -647,6 +672,100 @@ async function deleteClient(id) {
 function hideClientForm() {
   document.getElementById('clientForm').style.display = 'none';
   document.getElementById('clientsList').style.display = '';
+}
+
+// ===== TIKTOK PANEL (dashboard) =====
+function toggleDashTtPanel() {
+  const panel = document.getElementById('pf-tt-panel');
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+
+  panel.style.display = '';
+  panel.innerHTML = `
+    <div style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--r)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg viewBox="0 0 48 48" width="16" height="16" fill="currentColor"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg>
+        <span style="font-size:13px;font-weight:600">Add TikTok Video</span>
+      </div>
+      <input class="form-input" id="pf-tt-url" placeholder="https://tiktok.com/@user/video/123..." style="width:100%;margin-bottom:8px">
+      <div id="pf-tt-preview" style="margin-bottom:8px"></div>
+      <div style="margin-bottom:10px">
+        <label class="form-label" style="margin-bottom:4px">Custom thumbnail (optional)</label>
+        <label class="btn btn-outline btn-small" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload
+          <input type="file" accept="image/*,video/*" style="display:none" onchange="dashTtThumbUpload(this)">
+        </label>
+        <div id="pf-tt-thumb-preview" style="margin-top:6px"></div>
+        <input type="hidden" id="pf-tt-thumb-url" value="">
+      </div>
+      <button class="btn btn-primary btn-small" onclick="confirmDashTt()">Add Video</button>
+      <button class="btn btn-outline btn-small" onclick="document.getElementById('pf-tt-panel').style.display='none'">Cancel</button>
+    </div>
+  `;
+
+  const inp = document.getElementById('pf-tt-url');
+  inp.addEventListener('input', async () => {
+    const prev = document.getElementById('pf-tt-preview');
+    const id = getTTId(inp.value);
+    if (id) {
+      try {
+        const res = await fetch('/api/tiktok/oembed?url=' + encodeURIComponent(inp.value));
+        const data = await res.json();
+        if (data.thumbnail_url) {
+          prev.innerHTML = `<img src="${data.thumbnail_url}" style="width:100%;border-radius:8px;max-width:200px">`;
+          document.getElementById('pf-tt-thumb-url').value = data.thumbnail_url;
+        }
+      } catch { prev.innerHTML = '<span style="color:var(--dim);font-size:12px">Could not load preview</span>'; }
+    } else { prev.innerHTML = ''; }
+  });
+
+  setTimeout(() => inp.focus(), 50);
+}
+
+async function dashTtThumbUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const result = await uploadFile(file);
+    document.getElementById('pf-tt-thumb-url').value = result.url;
+    const prev = document.getElementById('pf-tt-thumb-preview');
+    if (file.type.startsWith('video')) {
+      prev.innerHTML = `<video src="${result.url}" muted autoplay loop style="width:100%;max-width:200px;border-radius:8px"></video>`;
+    } else {
+      prev.innerHTML = `<img src="${result.url}" style="width:100%;max-width:200px;border-radius:8px">`;
+    }
+    showStatus('Thumbnail uploaded.');
+  } catch { showStatus('Upload failed.', 'error'); }
+}
+
+function confirmDashTt() {
+  const url = document.getElementById('pf-tt-url').value.trim();
+  if (!url) return;
+  const ttId = getTTId(url);
+  if (!ttId) { showStatus('Invalid TikTok URL', 'error'); return; }
+
+  const thumbUrl = document.getElementById('pf-tt-thumb-url')?.value || '';
+
+  const m = { type: 'tiktok', src: url };
+  if (thumbUrl) m.thumb = thumbUrl;
+
+  const item = document.createElement('div');
+  item.className = 'media-item';
+  item.dataset.src = url;
+  item.dataset.type = 'tiktok';
+  if (thumbUrl) item.dataset.thumb = thumbUrl;
+
+  const thumbPreview = thumbUrl
+    ? `<img src="${thumbUrl}" alt="">`
+    : `<div style="width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 48 48" width="20" height="20" fill="#fff"><path d="M38.4 21.7V16c-3.1 0-5.5-1-7.2-2.9-1.6-1.9-2.4-4.3-2.4-7.1h-5.7v23.5c0 3-2.4 5.4-5.4 5.4s-5.4-2.4-5.4-5.4 2.4-5.4 5.4-5.4c.6 0 1.1.1 1.6.3V18.5c-.5-.1-1.1-.1-1.6-.1-6.2 0-11.2 5-11.2 11.2S11.5 40.8 17.7 40.8s11.2-5 11.2-11.2V19.8c2.4 1.7 5.3 2.7 8.5 2.7v-0.8z"/></svg></div>`;
+  item.innerHTML = `${thumbPreview}<div style="position:absolute;top:3px;left:3px;background:#000;color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px">TT</div><button class="media-item-remove" onclick="this.parentElement.remove()">&times;</button>`;
+
+  const addBtn = document.getElementById('pf-media-add');
+  addBtn.parentElement.insertBefore(item, addBtn);
+
+  document.getElementById('pf-tt-panel').style.display = 'none';
+  document.getElementById('pf-tt-panel').innerHTML = '';
+  showStatus('TikTok video added.');
 }
 
 // ===== UTILS =====
