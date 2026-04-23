@@ -1486,11 +1486,12 @@ nav.scrolled {
 .cta-social-btn {
   flex: 1;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 12px 24px;
+  padding: 16px 24px;
   border-radius: 100px;
   font-family: var(--font);
   font-size: 13px; font-weight: 500;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: #fff; text-decoration: none;
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.04);
