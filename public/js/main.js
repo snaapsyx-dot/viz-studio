@@ -488,7 +488,14 @@ function renderWorksSection(section, grid) {
         ? `<img src="${ttThumb}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'tiktok')">${ttBadge}`
         : `<div class="thumb-fallback thumb-fallback-tt">${TT_FALLBACK_SVG}</div>${ttBadge}`;
     } else if (isVideo) {
-      thumbHTML = `<video muted loop playsinline preload="metadata" class="grid-video"><source src="${firstMedia.src}" type="video/${firstMedia.src.split('.').pop() === 'webm' ? 'webm' : 'mp4'}"></video>`;
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        // Mobile: paused video with first frame, no autoplay
+        thumbHTML = `<video src="${firstMedia.src}" muted playsinline preload="metadata" class="grid-video-static"></video>
+          <div class="grid-play-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>`;
+      } else {
+        thumbHTML = `<video src="${firstMedia.src}" autoplay muted loop playsinline preload="auto"></video>`;
+      }
     } else {
       thumbHTML = `<img src="${firstMedia.src || '/Photos/png1.jpg'}" alt="${p.name}" loading="lazy" onerror="handleThumbError(this,'image')">`;
     }
@@ -545,20 +552,9 @@ function renderWorksSection(section, grid) {
     initWorksDragDrop(grid);
   }
 
-  // Ensure videos play when scrolled into view (mobile fix)
-  grid.querySelectorAll('.grid-video').forEach(vid => {
-    // Force load on mobile
-    vid.load();
-    const tryPlay = () => {
-      vid.play().catch(() => { setTimeout(tryPlay, 1000); });
-    };
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { tryPlay(); }
-        else { vid.pause(); }
-      });
-    }, { threshold: 0.1 });
-    obs.observe(vid);
+  // Mobile: seek to 0.5s to show first frame as poster
+  grid.querySelectorAll('.grid-video-static').forEach(vid => {
+    vid.addEventListener('loadedmetadata', () => { vid.currentTime = 0.5; }, { once: true });
   });
 
   grid.querySelectorAll('.reveal').forEach(el => revealObs?.observe(el));
