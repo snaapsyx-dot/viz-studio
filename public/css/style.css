@@ -130,18 +130,17 @@ nav {
   height: calc(64px + env(safe-area-inset-top, 0px));
   display: flex; align-items: center;
   justify-content: space-between;
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
 
 nav.scrolled {
-  background: rgba(10, 10, 10, 0.92);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-bottom-color: var(--border);
 }
 
@@ -1643,7 +1642,13 @@ footer {
 }
 
 @media (max-width: 768px) {
-  nav { padding: 0 16px; padding-top: env(safe-area-inset-top, 0px); }
+  nav {
+    padding: 0 16px; padding-top: env(safe-area-inset-top, 0px);
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom-color: var(--border);
+  }
   .nav-links { display: none; }
   /* Hamburger menu */
   .nav-right { gap: 8px; }
