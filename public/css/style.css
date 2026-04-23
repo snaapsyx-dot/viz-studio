@@ -131,6 +131,9 @@ nav {
   background: transparent;
   border-bottom: 1px solid transparent;
   transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 nav.scrolled {

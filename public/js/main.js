@@ -772,10 +772,12 @@ function cursorOff() { document.getElementById('cursor').classList.remove('hover
 let lenisInstance;
 function initLenis() {
   if (typeof Lenis === 'undefined') return;
+  // Disable Lenis on touch devices — native scroll is smoother and fixes fixed header
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouch) return;
   lenisInstance = new Lenis({
     duration: 1.2,
     easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    touchMultiplier: 2,
     infinite: false,
   });
 
