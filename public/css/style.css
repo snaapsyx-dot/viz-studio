@@ -125,26 +125,24 @@ html.lenis, html.lenis body { height: auto; }
 nav {
   position: fixed; top: 0; left: 0; right: 0;
   z-index: 5000;
-  padding: 0 48px; height: 64px;
+  padding: 0 48px;
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(64px + env(safe-area-inset-top, 0px));
   display: flex; align-items: center;
   justify-content: space-between;
-  background: transparent;
-  border-bottom: 1px solid transparent;
-  transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
-  will-change: transform;
 }
 
 nav.scrolled {
-  background: rgba(10, 10, 10, 0.6);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
   border-bottom-color: var(--border);
-}
-
-nav:not(.scrolled) {
-  mix-blend-mode: difference;
 }
 
 .logo {
@@ -1480,6 +1478,34 @@ nav:not(.scrolled) {
 
 .cta-btn:hover { transform: scale(1.03); box-shadow: 0 0 30px rgba(255,255,255,0.1); }
 
+/* CTA social buttons */
+.cta-socials {
+  display: flex; gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.cta-social-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-size: 14px; font-weight: 500;
+  color: #fff; text-decoration: none;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease);
+}
+.cta-social-btn:hover { transform: translateY(-2px); }
+.cta-social-tg:hover {
+  border-color: #2AABEE;
+  background: rgba(42,171,238,0.1);
+  color: #2AABEE;
+}
+.cta-social-dc:hover {
+  border-color: #5865F2;
+  background: rgba(88,101,242,0.1);
+  color: #5865F2;
+}
+
 /* ===== FOOTER ===== */
 footer {
   border-top: 1px solid var(--border);
@@ -1614,7 +1640,7 @@ footer {
 }
 
 @media (max-width: 768px) {
-  nav { padding: 0 24px; }
+  nav { padding: 0 16px; padding-top: env(safe-area-inset-top, 0px); }
   .nav-links { display: none; }
   /* Hamburger menu */
   .nav-right { gap: 8px; }
